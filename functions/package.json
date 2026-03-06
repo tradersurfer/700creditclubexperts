@@ -1,0 +1,12 @@
+{
+  "name": "700-credit-club-api-functions",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "serverless-http": "^3.2.0",
+    "resend": "^3.2.0",
+    "@neondatabase/serverless": "^0.9.0",
+    "jose": "^5.2.0"
+  }
+}
