@@ -21,7 +21,7 @@ export default function FeaturesPage() {
     {
       icon: Brain,
       title: "AI-Powered Dispute Engine",
-      description: "Our JECI AI system analyzes your credit report for FCRA and FDCPA violations, then generates customized dispute strategies optimized for maximum deletions.",
+      description: "Our Specialized AI system analyzes your credit report for FCRA and FDCPA violations, then generates customized dispute strategies optimized for maximum deletions.",
     },
     {
       icon: Shield,
