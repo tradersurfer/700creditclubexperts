@@ -102,7 +102,7 @@ function HeroSection() {
             { icon: Shield, text: "Licensed · State of Florida" },
             { icon: Scale, text: "FCRA Certified Experts" },
             { icon: Award, text: "Lifetime Guarantee" },
-            { icon: Zap, text: "JECI AI Powered" },
+            { icon: Zap, text: "AI Powered" },
             { icon: Lock, text: "100% Legal Methods" },
           ].map((badge) => (
             <div key={badge.text} className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm font-mono">
@@ -154,7 +154,7 @@ function BridgeSection() {
                 We invoke Consumer Law. We audit, not dispute. We build <span className="text-white font-semibold">Credit Weapons</span>.
               </p>
               <p>
-                With JECI AI scanning every line of your report for FCRA violations — and Certified
+                With our AI scanning every line of your report for FCRA violations — and Certified
                 Credit Experts executing surgical deletion strategies — your profile becomes
                 Institutional-grade.
               </p>
@@ -202,7 +202,7 @@ function UniqueFeaturesSection() {
   const features = [
     "Lifetime Guarantee",
     "Proprietary Credit Tracker App",
-    "JECI AI-Powered Analysis",
+    "Specialized AI-Powered Analysis",
     "Certified Credit Experts",
     "Affiliate Tracking Portal",
     "Client Results Dashboard",
@@ -452,7 +452,7 @@ function ResultsSection() {
 
 function ProcessSection() {
   const steps = [
-    { num: "01", title: "Free Credit Audit", desc: "We pull all 3 bureau reports and identify every FCRA violation, inaccuracy, and deletion opportunity using JECI AI." },
+    { num: "01", title: "Free Credit Audit", desc: "We pull all 3 bureau reports and identify every FCRA violation, inaccuracy, and deletion opportunity using our Specialized AI." },
     { num: "02", title: "Strategy Deployment", desc: "Your certified expert builds a custom legal argument for each item — no mass letters. Consumer Law, applied surgically." },
     { num: "03", title: "Dispute & Delete", desc: "We execute 3–4 rounds of disputes targeting bureaus, creditors, and original furnishers. Deletions are tracked in real-time." },
     { num: "04", title: "Build & Protect", desc: "Once clean, we build positive tradelines, optimize utilization, and establish Institutional Readiness for your financial goals." },
