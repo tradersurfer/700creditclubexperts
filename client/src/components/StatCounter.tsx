@@ -13,7 +13,7 @@ interface StatCounterProps {
 export default function StatCounter({ end, prefix = "", suffix = "", label, duration = 2000, decimals = 0 }: StatCounterProps) {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: false });
+  const { ref, inView } = useInView({ threshold: 0.01, triggerOnce: true });
   const startTime = useRef<number>(0);
   const animationFrame = useRef<number>(0);
 
