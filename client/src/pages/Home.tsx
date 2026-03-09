@@ -121,12 +121,33 @@ function StatsBar() {
     <section className="relative py-16 sm:py-20 bg-dark-slate-light/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
-          <StatCounter end={84} prefix="+" suffix="" label="Avg Point Increase Per Client" />
-          <StatCounter end={1.13} prefix="$" suffix="M+" label="In Negative Debt Deleted" decimals={1} />
-          <StatCounter end={1200} suffix="+" label="Members Served" />
+          <StatCounter 
+            end={100} 
+            prefix="+" 
+            label="Avg Point Increase Per Client" 
+          />
+          
+          <StatCounter 
+            end={2.4} 
+            prefix="$" 
+            suffix="M+" 
+            label="In Negative Debt Deleted" 
+            decimals={1} 
+          />
+          
+          <StatCounter 
+            end={1200} 
+            suffix="+" 
+            label="Members Served" 
+          />
+          
           <div className="text-center">
-            <div className="font-display text-4xl sm:text-5xl lg:text-6xl text-gold tracking-wide">15 USC</div>
-            <div className="text-slate-400 text-sm sm:text-base mt-2 font-medium">1681 Compliant</div>
+            <div className="font-display text-4xl sm:text-5xl lg:text-6xl text-gold tracking-wide">
+              15 USC
+            </div>
+            <div className="text-slate-400 text-sm sm:text-base mt-2 font-medium">
+              1681 Compliant
+            </div>
           </div>
         </div>
       </div>
