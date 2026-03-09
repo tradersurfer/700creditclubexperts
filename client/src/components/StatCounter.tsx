@@ -13,7 +13,7 @@ interface StatCounterProps {
 export default function StatCounter({ end, prefix = "", suffix = "", label, duration = 2000, decimals = 0 }: StatCounterProps) {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const { ref, inView } = useInView({ threshold: 0.3, triggerOnce: true });
+  const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: false });
   const startTime = useRef<number>(0);
   const animationFrame = useRef<number>(0);
 
@@ -41,7 +41,8 @@ export default function StatCounter({ end, prefix = "", suffix = "", label, dura
     };
   }, [inView, hasAnimated, end, duration]);
 
-  const displayValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toString();
+  const rawValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toString();
+const displayValue = Number(rawValue).toLocaleString('en-US');
 
   return (
     <div ref={ref} className="text-center" data-testid={`stat-${label.toLowerCase().replace(/\s/g, "-")}`}>
