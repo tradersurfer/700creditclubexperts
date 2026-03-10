@@ -18,28 +18,25 @@ export default function StatCounter({ end, prefix = "", suffix = "", label, dura
   const animationFrame = useRef<number>(0);
 
   useEffect(() => {
-    if (inView && !hasAnimated) {
-      setHasAnimated(true);
-      startTime.current = Date.now();
+  console.log(`[${label}] FORCED animation start (test mode)`);
+  setHasAnimated(true);
+  startTime.current = Date.now();
 
-      const animate = () => {
-        const elapsed = Date.now() - startTime.current;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setCount(eased * end);
-
-        if (progress < 1) {
-          animationFrame.current = requestAnimationFrame(animate);
-        }
-      };
-
+  const animate = () => {
+    const elapsed = Date.now() - startTime.current;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    setCount(eased * end);
+    if (progress < 1) {
       animationFrame.current = requestAnimationFrame(animate);
     }
+  };
+  animationFrame.current = requestAnimationFrame(animate);
 
-    return () => {
-      if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
-    };
-  }, [inView, hasAnimated, end, duration]);
+  return () => {
+    if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
+  };
+}, [end, duration, label]);   // no inView/hasAnimated deps
 
   const rawValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toString();
 const displayValue = Number(rawValue).toLocaleString('en-US');
