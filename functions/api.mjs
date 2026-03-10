@@ -225,4 +225,3 @@ export async function handler(event) {
   }
 
   return json(404, { error: `Route ${method} ${path} not found.` });
-}
