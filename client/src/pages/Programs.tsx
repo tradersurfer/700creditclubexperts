@@ -73,7 +73,7 @@ export default function ProgramsPage() {
                     <Zap className="w-5 h-5 text-gold shrink-0 mt-0.5" />
                     <div>
                       <p className="text-white text-sm font-medium">AI-Powered</p>
-                      <p className="text-xs text-slate-500">JECI pattern recognition</p>
+                      <p className="text-xs text-slate-500">Specialized pattern recognition</p>
                     </div>
                   </div>
                 </div>
