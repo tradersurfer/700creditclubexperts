@@ -93,16 +93,16 @@ export default function FeaturesPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-16">
             <div className="text-center">
-              <StatCounter end={84} prefix="+" suffix="" label="Avg Point Increase" />
+              <StatCounter end={100} prefix="+" suffix="" label="Avg Point Increase" />
             </div>
             <div className="text-center">
-              <StatCounter end={2.4} prefix="$" suffix="M+" label="Debt Deleted" decimals={1} />
+              <StatCounter end={1.13} prefix="$" suffix="M+" label="Debt Deleted" decimals={1} />
             </div>
             <div className="text-center">
               <StatCounter end={1200} suffix="+" label="Clients Served" />
             </div>
             <div className="text-center">
-              <div className="font-display text-4xl text-gold tracking-wide">100%</div>
+              <div className="font-display text-4xl text-gold tracking-wide">96%</div>
               <div className="text-slate-400 text-sm mt-2 font-medium">Guarantee</div>
             </div>
           </div>
