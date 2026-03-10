@@ -61,6 +61,10 @@ export default function Navbar() {
           </div>
 
           {/* Actions */}
+          <div className="flex items-center gap-4">
+  {/* other nav items */}
+  <ThemeToggle />
+</div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/audit">
               <Button className="bg-gold text-dark-slate font-semibold text-xs sm:text-sm px-3 sm:px-5 py-2">
