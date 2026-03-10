@@ -128,7 +128,7 @@ function StatsBar() {
           />
           
           <StatCounter 
-            end={2.4} 
+            end={1.13} 
             prefix="$" 
             suffix="M+" 
             label="In Negative Debt Deleted" 
