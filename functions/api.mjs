@@ -7,7 +7,7 @@ const {
   JWT_SECRET = "700-credit-club-default-secret",
   ADMIN_EMAIL = "sales@700creditclubexperts.com",
   ADMIN_PASSWORD,
-  FROM_EMAIL = "noreply@700creditclubexperts.com",
+  FROM_EMAIL = "sales@700creditclubexperts.com",
   FRONTEND_URL = "https://700creditclubexperts.com",
 } = process.env;
 
@@ -36,8 +36,9 @@ async function sendEmail(to, subject, html) {
   if (!SENDGRID_API_KEY) { console.log("No SendGrid key — skipping email"); return; }
   try {
     await sgMail.send({ to, from: FROM_EMAIL, subject, html });
+    console.log("Email sent to:", to);
   } catch (err) {
-    console.error("Email error:", err.message, err.response?.body);
+    console.error("Email error:", err.message, JSON.stringify(err.response?.body));
   }
 }
 
@@ -76,7 +77,7 @@ export async function handler(event) {
 
   console.log(`${method} ${path}`);
 
-  // ── Health ──────────────────────────────────────────────────────────────
+  // ── Health ────────────────────────────────────────────────────────────────
   if (path === "/health" && method === "GET") {
     return json(200, {
       status: "ok",
@@ -86,53 +87,77 @@ export async function handler(event) {
     });
   }
 
-  // ── Intake Form ─────────────────────────────────────────────────────────
+  // ── Intake Form ───────────────────────────────────────────────────────────
   if (path === "/intake" && method === "POST") {
     const { name, email, phone, contactTime, goals, source, budget, affiliateRef } = body;
     if (!name?.trim() || !email?.trim() || !phone?.trim()) {
       return json(400, { error: "Name, email, and phone are required." });
     }
 
-// Generate portal credentials automatically
-  const tempPassword = randomBytes(4).toString("hex").toUpperCase() + "!7cc";
+    const tempPassword = randomBytes(4).toString("hex").toUpperCase() + "!7cc";
 
-  await sendEmail(
-    email.trim(),
-    `Audit Received + Your Portal Access — 700 Credit Club Experts`,
-    `<div style="font-family:'Segoe UI',Arial,sans-serif;background:#020617;color:#f1f5f9;padding:36px;border-radius:12px;max-width:600px;">
-      <h1 style="color:#EAB308;font-size:30px;margin:0 0 4px;letter-spacing:2px;">AUDIT RECEIVED.</h1>
-      <h2 style="color:#f1f5f9;font-size:20px;margin:0 0 24px;font-weight:400;">We'll be in touch, ${name.split(" ")[0]}.</h2>
-      <p style="color:#94a3b8;line-height:1.8;margin-bottom:20px;">Our Certified Credit Experts have your request. JECI AI will scan your full 3-bureau report for every FCRA violation and deletion opportunity under 15 USC 1681.</p>
-
-      <div style="background:rgba(234,179,8,0.15);border:2px solid #EAB308;border-radius:10px;padding:24px;margin:24px 0;">
-        <p style="color:#EAB308;font-size:13px;font-weight:800;margin:0 0 16px;text-transform:uppercase;letter-spacing:1px;">🔐 Your Member Portal Access</p>
-        <p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">Your account has been created. Log in to track your case progress in real time.</p>
+    // Admin notification
+    await sendEmail(
+      ADMIN_EMAIL,
+      `New Audit Request — ${name}`,
+      `<div style="font-family:'Segoe UI',Arial,sans-serif;background:#020617;color:#f1f5f9;padding:36px;border-radius:12px;max-width:600px;">
+        <div style="border-bottom:2px solid #EAB308;padding-bottom:16px;margin-bottom:24px;">
+          <h1 style="color:#EAB308;font-size:26px;margin:0;letter-spacing:2px;">NEW AUDIT REQUEST</h1>
+          <p style="color:#475569;font-size:11px;margin:4px 0 0;">700 Credit Club Experts &middot; ${new Date().toLocaleString()}</p>
+        </div>
         <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Portal URL</td><td style="padding:8px 0;color:#f1f5f9;font-size:14px;font-weight:600;"><a href="${FRONTEND_URL}/portal" style="color:#EAB308;">${FRONTEND_URL}/portal</a></td></tr>
-          <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Email</td><td style="padding:8px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${email.trim()}</td></tr>
-          <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Temp Password</td><td style="padding:8px 0;color:#EAB308;font-size:16px;font-weight:800;letter-spacing:2px;">${tempPassword}</td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Name</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${name}</td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Email</td><td style="padding:10px 0;font-size:14px;font-weight:600;"><a href="mailto:${email}" style="color:#EAB308;">${email}</a></td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Phone</td><td style="padding:10px 0;font-size:14px;font-weight:600;"><a href="tel:${phone}" style="color:#EAB308;">${phone}</a></td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Best Time</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${contactTime || "Not specified"}</td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Goals</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${Array.isArray(goals) ? goals.join(", ") : (goals || "—")}</td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Source</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${source || "—"}</td></tr>
+          <tr style="border-bottom:1px solid rgba(234,179,8,0.08);"><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Budget</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${budget || "—"}</td></tr>
+          <tr><td style="padding:10px 16px 10px 0;color:#64748b;font-size:11px;text-transform:uppercase;">Referral</td><td style="padding:10px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${affiliateRef || "Direct"}</td></tr>
         </table>
-        <p style="color:#475569;font-size:11px;margin:16px 0 0;">Change your password after first login in the Settings tab.</p>
-      </div>
+      </div>`
+    );
 
-      <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:10px;padding:20px;margin:20px 0;">
-        <p style="color:#EAB308;font-size:11px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Your Selected Goals</p>
-        <p style="color:#f1f5f9;font-size:15px;font-weight:600;margin:0;">${Array.isArray(goals) ? goals.join(" · ") : (goals || "General Credit Improvement")}</p>
-      </div>
+    // Client confirmation + credentials
+    await sendEmail(
+      email.trim(),
+      `Audit Received + Your Portal Access — 700 Credit Club Experts`,
+      `<div style="font-family:'Segoe UI',Arial,sans-serif;background:#020617;color:#f1f5f9;padding:36px;border-radius:12px;max-width:600px;">
+        <h1 style="color:#EAB308;font-size:30px;margin:0 0 4px;letter-spacing:2px;">AUDIT RECEIVED.</h1>
+        <h2 style="color:#f1f5f9;font-size:20px;margin:0 0 24px;font-weight:400;">We'll be in touch, ${name.split(" ")[0]}.</h2>
+        <p style="color:#94a3b8;line-height:1.8;margin-bottom:20px;">Our Certified Credit Experts have your request. JECI AI will scan your full 3-bureau report for every FCRA violation and deletion opportunity under 15 USC 1681.</p>
 
-      <div style="margin:20px 0;padding:20px;background:#0f172a;border:1px solid rgba(234,179,8,0.15);border-radius:10px;">
-        <p style="color:#EAB308;font-size:13px;font-weight:700;margin:0 0 8px;">💰 Save $400 — Self-Enroll Online</p>
-        <p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">Skip the enrollment department and get started today.</p>
-        <a href="${FRONTEND_URL}/enroll" style="display:inline-block;background:#EAB308;color:#020617;font-weight:800;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;letter-spacing:1px;">SELF-ENROLL NOW</a>
-      </div>
+        <div style="background:rgba(234,179,8,0.15);border:2px solid #EAB308;border-radius:10px;padding:24px;margin:24px 0;">
+          <p style="color:#EAB308;font-size:13px;font-weight:800;margin:0 0 16px;text-transform:uppercase;letter-spacing:1px;">Your Member Portal Access</p>
+          <p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">Your account has been created. Log in to track your case in real time.</p>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Portal URL</td><td style="padding:8px 0;font-size:14px;font-weight:600;"><a href="${FRONTEND_URL}/portal" style="color:#EAB308;">${FRONTEND_URL}/portal</a></td></tr>
+            <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Email</td><td style="padding:8px 0;color:#f1f5f9;font-size:14px;font-weight:600;">${email.trim()}</td></tr>
+            <tr><td style="padding:8px 16px 8px 0;color:#64748b;font-size:12px;text-transform:uppercase;">Temp Password</td><td style="padding:8px 0;color:#EAB308;font-size:16px;font-weight:800;letter-spacing:2px;">${tempPassword}</td></tr>
+          </table>
+          <p style="color:#475569;font-size:11px;margin:16px 0 0;">Change your password after first login in the Settings tab.</p>
+          <a href="${FRONTEND_URL}/portal" style="display:inline-block;background:#EAB308;color:#020617;font-weight:800;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;margin-top:16px;letter-spacing:1px;">ACCESS YOUR PORTAL</a>
+        </div>
 
-      <p style="color:#475569;font-size:11px;margin-top:20px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);">Legal, Moral, Ethical &amp; Factual · 15 USC 1681 · Licensed in Florida</p>
-    </div>`
-  );
+        <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:10px;padding:20px;margin:20px 0;">
+          <p style="color:#EAB308;font-size:11px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Your Selected Goals</p>
+          <p style="color:#f1f5f9;font-size:15px;font-weight:600;margin:0;">${Array.isArray(goals) ? goals.join(" &middot; ") : (goals || "General Credit Improvement")}</p>
+        </div>
 
-  return json(200, { success: true, message: "Audit request received! Check your email for confirmation and portal access." });
+        <div style="margin:20px 0;padding:20px;background:#0f172a;border:1px solid rgba(234,179,8,0.15);border-radius:10px;">
+          <p style="color:#EAB308;font-size:13px;font-weight:700;margin:0 0 8px;">Save $400 — Self-Enroll Online</p>
+          <p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">Skip the enrollment department and get started today.</p>
+          <a href="${FRONTEND_URL}/enroll" style="display:inline-block;background:#EAB308;color:#020617;font-weight:800;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;letter-spacing:1px;">SELF-ENROLL NOW</a>
+        </div>
 
-  // ── Auth: Login ─────────────────────────────────────────────────────────
+        <p style="color:#475569;font-size:11px;margin-top:20px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);">Legal, Moral, Ethical &amp; Factual &middot; 15 USC 1681 &middot; Licensed in Florida</p>
+      </div>`
+    );
+
+    return json(200, { success: true, message: "Audit request received! Check your email for confirmation and portal access." });
+  }
+
+  // ── Auth: Login ───────────────────────────────────────────────────────────
   if (path === "/auth/login" && method === "POST") {
     const { email, password } = body;
     if (!email || !password) return json(400, { error: "Email and password required." });
@@ -143,7 +168,7 @@ export async function handler(event) {
     return json(401, { error: "Invalid credentials." });
   }
 
-  // ── Auth: Register ───────────────────────────────────────────────────────
+  // ── Auth: Register ────────────────────────────────────────────────────────
   if (path === "/auth/register" && method === "POST") {
     const { name, email, password } = body;
     if (!name?.trim() || !email?.trim() || !password) return json(400, { error: "Name, email, and password are required." });
@@ -162,12 +187,12 @@ export async function handler(event) {
     return json(200, { success: true, accessToken: token, refreshToken: token, user: { id: Date.now(), name: name.trim(), email: email.toLowerCase(), role: "client" } });
   }
 
-  // ── Auth: Logout ─────────────────────────────────────────────────────────
+  // ── Auth: Logout ──────────────────────────────────────────────────────────
   if (path === "/auth/logout" && method === "POST") {
     return json(200, { success: true });
   }
 
-  // ── Auth: Refresh ────────────────────────────────────────────────────────
+  // ── Auth: Refresh ─────────────────────────────────────────────────────────
   if (path === "/auth/refresh" && method === "POST") {
     try {
       const payload = await verifyToken(body.refreshToken);
@@ -225,4 +250,4 @@ export async function handler(event) {
   }
 
   return json(404, { error: `Route ${method} ${path} not found.` });
-  }
+}
