@@ -161,7 +161,7 @@ export default function Footer() {
             This is not legal advice. We are not a law firm.
           </p>
           <p className="text-slate-600 text-xs text-center mt-4">
-            &copy; {new Date().getFullYear()} 700 Credit Club Experts · JECI Group Credit Division. All rights reserved.
+            &copy; {new Date().getFullYear()} 700 Credit Club Experts · The 700 Club, LLC: Credit Division. All rights reserved.
           </p>
         </div>
       </div>
