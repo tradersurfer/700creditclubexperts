@@ -16,6 +16,7 @@ import AffiliatePage from "@/pages/Affiliate";
 import ThankYouPage from "@/pages/ThankYou";
 import HomeOwnershipPage from "@/pages/HomeOwnership";
 import FeaturesPage from "@/pages/Features";
+import Enroll from "@/pages/Enroll";
 import NotFound from "@/pages/not-found";
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/thank-you" component={ThankYouPage} />
       <Route path="/home-ownership" component={HomeOwnershipPage} />
       <Route path="/features" component={FeaturesPage} />
+      <Route path="/enroll" component={EnrollPage} />
       <Route component={NotFound} />
     </Switch>
   );
