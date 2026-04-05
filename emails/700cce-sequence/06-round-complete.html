@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+  EMAIL 6 — Round Complete (reusable for any round number)
+  Subject:  Round {{round_number}} Complete — Here's What We Achieved
+  Trigger:  CRC webhook: round.completed
+            Dynamic: {{round_number}}, {{items_deleted}}, {{score_change}}, {{upsell_link}}
+  SendGrid Template ID: [SET: d-XXXXXXXXXXXXXXXXXX]
+  Resend:   Call sendEmail06RoundComplete({ first_name, email, round_number, items_deleted, score_before, score_after, upsell_link, portal_link })
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Round Complete</title>
+<style>
+body{margin:0;padding:0;background:#020617;font-family:'Segoe UI',Helvetica,Arial,sans-serif;}
+.wrapper{max-width:600px;margin:0 auto;background:#020617;}
+.header{text-align:center;padding:28px 24px 20px;border-bottom:1px solid rgba(234,179,8,0.2);}
+.logo-box{display:inline-block;background:#EAB308;padding:10px 18px;border-radius:8px;margin-bottom:10px;}
+.logo-text{font-size:26px;font-weight:900;color:#020617;letter-spacing:2px;}
+.brand-name{color:#EAB308;font-size:18px;margin:8px 0 2px;letter-spacing:3px;}
+.brand-sub{color:#94a3b8;font-size:10px;margin:0;letter-spacing:2px;text-transform:uppercase;}
+.body{padding:36px 28px;}
+.h1{color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 8px;line-height:1.3;}
+.p{color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 16px;}
+.score-card{background:#0f172a;border:2px solid rgba(234,179,8,0.25);border-radius:14px;padding:28px 24px;margin-bottom:24px;}
+.score-row{display:table;width:100%;text-align:center;}
+.score-cell{display:table-cell;vertical-align:middle;}
+.score-before{color:#dc2626;font-size:48px;font-weight:900;}
+.score-after{color:#4ade80;font-size:48px;font-weight:900;}
+.score-arrow{color:#EAB308;font-size:32px;}
+.score-label{color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+.score-delta{background:#EAB308;color:#020617;font-weight:900;font-size:18px;padding:8px 20px;border-radius:20px;display:inline-block;margin-top:12px;}
+.del-list{background:#0f172a;border-radius:8px;padding:16px 20px;margin-bottom:20px;}
+.del-item{display:table;width:100%;padding:8px 0;border-bottom:1px solid rgba(234,179,8,0.06);}
+.del-item:last-child{border-bottom:none;}
+.del-label{display:table-cell;color:#94a3b8;font-size:13px;}
+.del-result{display:table-cell;text-align:right;}
+.del-badge-green{display:inline-block;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80;font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700;}
+.upsell{background:rgba(234,179,8,0.07);border:2px solid rgba(234,179,8,0.25);border-radius:12px;padding:24px;margin-bottom:20px;text-align:center;}
+.cta-btn{display:inline-block;background:#EAB308;color:#020617;font-weight:800;padding:14px 36px;border-radius:8px;text-decoration:none;font-size:15px;letter-spacing:1px;}
+.cta-btn-outline{display:inline-block;background:transparent;border:2px solid rgba(234,179,8,0.4);color:#EAB308;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;letter-spacing:0.5px;}
+.footer{border-top:1px solid rgba(234,179,8,0.08);padding:24px 28px;text-align:center;}
+.footer p{color:#475569;font-size:11px;margin:2px 0;line-height:1.6;}
+.footer a{color:#EAB308;text-decoration:none;}
+.jeci{color:#64748b;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo-box"><span class="logo-text">700</span></div>
+    <h1 class="brand-name">700 CREDIT CLUB EXPERTS</h1>
+    <p class="brand-sub">Florida Licensed &bull; Powered by JECI AI &bull; FCRA Compliant</p>
+  </div>
+
+  <div class="body">
+    <p style="color:#4ade80;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:0 0 8px;">&#10003; Round {{round_number}} Complete</p>
+    <h2 class="h1">Hi {{first_name}}, here's what Round {{round_number}} achieved.</h2>
+    <p class="p">
+      Your certified expert has closed Round {{round_number}}. Every bureau has responded and
+      all results have been logged to your client portal. Here's the breakdown:
+    </p>
+
+    <!-- Score Card -->
+    <div class="score-card">
+      <p style="color:#64748b;font-size:11px;letter-spacing:2px;text-transform:uppercase;text-align:center;margin:0 0 16px;">Score Progress</p>
+      <div class="score-row">
+        <div class="score-cell">
+          <div class="score-before">{{score_before}}</div>
+          <div class="score-label">Before Round {{round_number}}</div>
+        </div>
+        <div class="score-cell">
+          <span class="score-arrow">&rarr;</span>
+        </div>
+        <div class="score-cell">
+          <div class="score-after">{{score_after}}</div>
+          <div class="score-label">After Round {{round_number}}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px;">
+        <span class="score-delta">+{{score_gain}} Points This Round</span>
+      </div>
+    </div>
+
+    <!-- Deletions -->
+    <p style="color:#f1f5f9;font-weight:700;font-size:14px;margin:0 0 10px;">{{items_deleted}} Items Removed This Round:</p>
+    <div class="del-list">
+      <!-- These rows are populated dynamically from CRC data -->
+      {{#each deletions}}
+      <div class="del-item">
+        <span class="del-label">{{this.name}} &mdash; {{this.amount}}</span>
+        <span class="del-result"><span class="del-badge-green">DELETED</span></span>
+      </div>
+      {{/each}}
+    </div>
+
+    <!-- Upsell / Next Round -->
+    <div class="upsell">
+      <p style="color:#EAB308;font-size:12px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:1px;">Keep the Momentum Going</p>
+      <p style="color:#f1f5f9;font-size:16px;font-weight:700;margin:0 0 8px;">Ready for the Full Sweep?</p>
+      <p style="color:#94a3b8;font-size:13px;margin:0 0 20px;line-height:1.6;">
+        Upgrade to <strong style="color:#f1f5f9;">Full Sweep + Weekly 1-on-1</strong> to unlock
+        multi-round dispute coverage, weekly strategy sessions, and our lifetime deletion guarantee.
+      </p>
+      <a href="{{upsell_link}}" class="cta-btn" style="margin-bottom:12px;display:inline-block;">UPGRADE TO FULL SWEEP &rarr;</a>
+      <br/>
+      <a href="{{client_portal_link}}" class="cta-btn-outline">View My Full Results</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>700 Credit Club Experts &bull; Licensed in the State of Florida</p>
+    <p>15 USC 1681 (FCRA) &bull; 15 USC 1692 (FDCPA) Compliant</p>
+    <p><a href="mailto:sales@700creditclubexperts.com">sales@700creditclubexperts.com</a></p>
+    <p style="margin-top:8px;"><a href="{{unsubscribe_link}}" style="color:#475569;font-size:10px;">Unsubscribe</a></p>
+    <p class="jeci">Powered by JECI AI Dispute Agent &bull; &copy; 2025 The 700 Club, LLC</p>
+  </div>
+
+</div>
+</body>
+</html>

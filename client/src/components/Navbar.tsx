@@ -7,7 +7,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/features", label: "Features" },
   { href: "/programs", label: "Programs" },
-  { href: "/enroll", label: "Enroll" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/business-credit", label: "Business Credit" },
   { href: "/about", label: "About" },
   { href: "/portal", label: "Portal" },
@@ -62,11 +62,11 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/audit">
+            <a href="https://buy.stripe.com/14AdR80Pog5o6nignxfEk00" target="_blank" rel="noopener noreferrer">
               <Button className="bg-gold text-dark-slate font-semibold text-xs sm:text-sm px-3 sm:px-5 py-2">
                 Start Your Audit
               </Button>
-            </Link>
+            </a>
             <button
               className="lg:hidden text-slate-300 p-1"
               onClick={() => setMobileOpen(!mobileOpen)}

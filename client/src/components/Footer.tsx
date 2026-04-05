@@ -60,7 +60,7 @@ export default function Footer() {
                 { href: "/", label: "Home" },
                 { href: "/features", label: "Features" },
                 { href: "/programs", label: "Programs" },
-                { href: "/enroll", label: "Self-Enroll" },
+                { href: "/pricing", label: "Pricing" },
                 { href: "/home-ownership", label: "Home Ownership" },
                 { href: "/business-credit", label: "Business Credit" },
                 { href: "/about", label: "About Us" },
@@ -79,9 +79,14 @@ export default function Footer() {
             <h4 className="font-display text-gold text-lg tracking-wide mb-4">RESOURCES</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/audit" className="text-slate-400 text-sm hover:text-gold transition-colors">
-                  Start Your Audit
-                </Link>
+                <a href="https://buy.stripe.com/14AdR80Pog5o6nignxfEk00" target="_blank" rel="noopener noreferrer" className="text-slate-400 text-sm hover:text-gold transition-colors inline-flex items-center gap-1">
+                  Start Your Audit — $149 <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a href="https://buy.stripe.com/9B6aEW1Ts1au12Y5ITfEk01" target="_blank" rel="noopener noreferrer" className="text-slate-400 text-sm hover:text-gold transition-colors inline-flex items-center gap-1">
+                  Self-Enroll Now — $249 <ExternalLink className="w-3 h-3" />
+                </a>
               </li>
               <li>
                 <Link href="/portal" className="text-slate-400 text-sm hover:text-gold transition-colors">

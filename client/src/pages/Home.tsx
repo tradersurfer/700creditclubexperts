@@ -71,26 +71,28 @@ function HeroSection() {
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white tracking-wide leading-[0.95] mb-6">
               YOUR CREDIT SCORE
               <br />
-              <span className="text-gold">IS A WEAPON.</span>
+              <span className="text-gold">IS A 3-DIGIT</span>
               <br />
-              LET US LOAD IT.
+              LEGAL PROBLEM.
+              <br />
+              <span className="text-gold">WE FIX IT</span>
+              <br />
+              WITH THE LAW.
             </h1>
             <p className="text-slate-400 text-base sm:text-lg max-w-xl leading-relaxed mb-10">
-              Stop paying for generic "disputes." Join an institutional-grade club that uses{" "}
-              <span className="text-white font-bold">Consumer Law Restoration</span> and AI-driven
-              systems to permanently erase inaccurate debt and engineer Institutional Readiness.
+              Consumer Law Restoration powered by JECI AI — Starting at $149.
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link href="/audit">
+              <a href="https://buy.stripe.com/14AdR80Pog5o6nignxfEk00" target="_blank" rel="noopener noreferrer">
                 <Button size="lg" className="bg-gold text-dark-slate font-bold shadow-[0_20px_40px_rgba(234,179,8,0.15)]">
-                  Start Your Free Audit <ArrowRight className="w-4 h-4 ml-2" />
+                  Start Your Audit <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-              </Link>
-              <Link href="/enroll">
-                <Button size="lg" variant="outline" className="border-brand-red text-white font-semibold bg-transparent">
-                  Self-Enroll · Save $400
+              </a>
+              <a href="https://buy.stripe.com/9B6aEW1Ts1au12Y5ITfEk01" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" variant="outline" className="border-gold/40 text-white font-semibold bg-transparent">
+                  Self-Enroll Now
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
           <div className="hidden lg:block">
@@ -357,13 +359,46 @@ function ResultsSection() {
     <section className="relative py-20 sm:py-28">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <SectionTag>Social Proof</SectionTag>
+          <SectionTag>Real Results</SectionTag>
           <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide">
             REAL RESULTS. <span className="text-gold">REAL DELETIONS.</span>
           </h2>
           <p className="text-slate-400 mt-4 max-w-xl mx-auto text-sm">
             These are actual screenshots from our client portal. Names and details blurred for privacy.
           </p>
+        </div>
+
+        {/* Featured client result */}
+        <div className="bg-dark-slate-light border border-gold/20 rounded-2xl p-8 sm:p-10 mb-12 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-gold rounded-l-2xl" />
+          <div className="pl-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10">
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-slate-500 text-xs font-mono uppercase mb-1">Before</p>
+                  <p className="font-display text-5xl text-brand-red">524</p>
+                </div>
+                <div className="text-center">
+                  <ArrowRight className="w-6 h-6 text-gold mx-auto" />
+                  <p className="text-gold text-xs font-mono mt-1">67 Days</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-slate-500 text-xs font-mono uppercase mb-1">After</p>
+                  <p className="font-display text-5xl text-green-400">608</p>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-bold text-lg sm:text-xl leading-snug mb-2">
+                  "Client went from 524 to 608 in 67 days. 4 collections deleted. $18,400 in negative debt removed."
+                </p>
+                <div className="flex flex-wrap gap-3 mt-3">
+                  <span className="bg-green-400/10 border border-green-400/30 text-green-400 text-xs font-mono px-3 py-1 rounded-full">+84 Points</span>
+                  <span className="bg-gold/10 border border-gold/30 text-gold text-xs font-mono px-3 py-1 rounded-full">4 Collections Deleted</span>
+                  <span className="bg-gold/10 border border-gold/30 text-gold text-xs font-mono px-3 py-1 rounded-full">$18,400 Removed</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Real Client Proof Images */}
@@ -533,20 +568,24 @@ function CTASection() {
           READY TO <span className="text-gold">TAKE CONTROL?</span>
         </h2>
         <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto mb-10">
-          Start with a free credit audit. No pressure — we analyze your report and tell you
-          exactly what can be removed before you spend a single dollar.
+          Consumer Law Restoration powered by JECI AI — Starting at $149.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/audit">
+          <a href="https://buy.stripe.com/14AdR80Pog5o6nignxfEk00" target="_blank" rel="noopener noreferrer">
             <Button size="lg" className="bg-gold text-dark-slate font-bold shadow-[0_20px_40px_rgba(234,179,8,0.15)]">
-              Start Your Free Audit <ArrowRight className="w-4 h-4 ml-2" />
+              Start Your Audit <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-          </Link>
-          <Link href="/enroll">
+          </a>
+          <a href="https://buy.stripe.com/9B6aEW1Ts1au12Y5ITfEk01" target="_blank" rel="noopener noreferrer">
             <Button size="lg" variant="outline" className="border-gold/40 text-gold font-semibold bg-transparent">
-              Self-Enroll · Save $400
+              Self-Enroll Now
             </Button>
-          </Link>
+          </a>
+          <a href="https://www.skool.com/700-credit-club-experts-7830" target="_blank" rel="noopener noreferrer">
+            <Button size="lg" variant="outline" className="border-slate-600 text-slate-300 font-semibold bg-transparent">
+              Join the Community
+            </Button>
+          </a>
         </div>
         <p className="text-slate-500 text-xs font-mono mt-6">
           🔒 100% Legal · Licensed in Florida · FCRA/FDCPA Compliant

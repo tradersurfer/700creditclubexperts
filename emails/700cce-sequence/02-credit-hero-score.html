@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+  EMAIL 2 — Credit Hero Score Link
+  Subject:  Quick Action: Pull Your Free Credit Hero Score
+  Trigger:  Day 1 after enrollment (scheduled job: +24h from client.created)
+  SendGrid Template ID: [SET: d-XXXXXXXXXXXXXXXXXX]
+  Resend:   Call sendEmail02CreditHero({ first_name, email, credit_hero_url, portal_link })
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pull Your Free Credit Score</title>
+<style>
+body{margin:0;padding:0;background:#020617;font-family:'Segoe UI',Helvetica,Arial,sans-serif;}
+.wrapper{max-width:600px;margin:0 auto;background:#020617;}
+.header{text-align:center;padding:28px 24px 20px;border-bottom:1px solid rgba(234,179,8,0.2);}
+.logo-box{display:inline-block;background:#EAB308;padding:10px 18px;border-radius:8px;margin-bottom:10px;}
+.logo-text{font-size:26px;font-weight:900;color:#020617;letter-spacing:2px;}
+.brand-name{color:#EAB308;font-size:18px;margin:8px 0 2px;letter-spacing:3px;}
+.brand-sub{color:#94a3b8;font-size:10px;margin:0;letter-spacing:2px;text-transform:uppercase;}
+.body{padding:36px 28px;}
+.h1{color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 8px;line-height:1.3;}
+.p{color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 16px;}
+.action-card{background:#0f172a;border:2px solid rgba(234,179,8,0.3);border-radius:12px;padding:28px 24px;margin-bottom:24px;text-align:center;}
+.action-step{display:inline-block;background:#EAB308;color:#020617;font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.cta-btn{display:inline-block;background:#EAB308;color:#020617;font-weight:800;padding:14px 36px;border-radius:8px;text-decoration:none;font-size:15px;letter-spacing:1px;}
+.why-card{background:#0f172a;border-left:4px solid #EAB308;border-radius:0 8px 8px 0;padding:20px 24px;margin-bottom:20px;}
+.why-item{margin-bottom:10px;color:#94a3b8;font-size:13px;line-height:1.6;}
+.why-item strong{color:#f1f5f9;}
+.check{color:#EAB308;margin-right:6px;}
+.divider{border:none;border-top:1px solid rgba(234,179,8,0.1);margin:24px 0;}
+.footer{border-top:1px solid rgba(234,179,8,0.08);padding:24px 28px;text-align:center;}
+.footer p{color:#475569;font-size:11px;margin:2px 0;line-height:1.6;}
+.footer a{color:#EAB308;text-decoration:none;}
+.jeci{color:#64748b;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo-box"><span class="logo-text">700</span></div>
+    <h1 class="brand-name">700 CREDIT CLUB EXPERTS</h1>
+    <p class="brand-sub">Florida Licensed &bull; Powered by JECI AI &bull; FCRA Compliant</p>
+  </div>
+
+  <div class="body">
+    <span class="action-step">&#9889; Action Required — Day 1</span>
+    <h2 class="h1">Hi {{first_name}}, pull your free score now.</h2>
+    <p class="p">
+      Before we send your Round 1 dispute letters, we need a baseline score from
+      <strong style="color:#f1f5f9;">Credit Hero Score</strong> — a free, FCRA-compliant credit monitoring
+      tool. This gives us the before/after comparison to prove your results.
+    </p>
+
+    <div class="action-card">
+      <p style="color:#EAB308;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:0 0 6px;">Step 1 of Your Journey</p>
+      <p style="color:#f1f5f9;font-size:18px;font-weight:700;margin:0 0 8px;">Pull Your Free Credit Hero Score</p>
+      <p style="color:#64748b;font-size:12px;margin:0 0 20px;">Takes 2 minutes. No credit card required. Free forever.</p>
+      <a href="{{credit_hero_url}}" class="cta-btn">GET MY FREE SCORE &rarr;</a>
+    </div>
+
+    <p class="p">Why Credit Hero Score? Here's what it gives us:</p>
+    <div class="why-card">
+      <div class="why-item"><span class="check">&#10003;</span><strong>Baseline score</strong> — We document your starting point before disputes begin</div>
+      <div class="why-item"><span class="check">&#10003;</span><strong>All 3 bureau scores</strong> — Equifax, TransUnion, Experian simultaneously</div>
+      <div class="why-item"><span class="check">&#10003;</span><strong>Real-time alerts</strong> — You'll know the moment any bureau updates your file</div>
+      <div class="why-item"><span class="check">&#10003;</span><strong>Proof of deletion</strong> — We show you the before/after for every item we remove</div>
+    </div>
+
+    <hr class="divider"/>
+    <p class="p" style="font-size:12px;">
+      Already pulled your score? Reply to this email with your score and we'll note it in your file.
+      You can also view your audit progress in your
+      <a href="{{client_portal_link}}" style="color:#EAB308;">client portal</a>.
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>700 Credit Club Experts &bull; Licensed in the State of Florida</p>
+    <p>15 USC 1681 (FCRA) &bull; 15 USC 1692 (FDCPA) Compliant</p>
+    <p><a href="mailto:sales@700creditclubexperts.com">sales@700creditclubexperts.com</a></p>
+    <p style="margin-top:8px;"><a href="{{unsubscribe_link}}" style="color:#475569;font-size:10px;">Unsubscribe</a></p>
+    <p class="jeci">Powered by JECI AI Dispute Agent &bull; &copy; 2025 The 700 Club, LLC</p>
+  </div>
+
+</div>
+</body>
+</html>
