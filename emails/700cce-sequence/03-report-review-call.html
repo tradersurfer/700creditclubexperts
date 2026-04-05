@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+  EMAIL 3 — Report Review Call Booking
+  Subject:  Schedule Your Free Report Review Call
+  Trigger:  Day 2 after enrollment (+48h from client.created)
+  SendGrid Template ID: [SET: d-XXXXXXXXXXXXXXXXXX]
+  Resend:   Call sendEmail03ReviewCall({ first_name, email, calendly_link, portal_link })
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Schedule Your Report Review Call</title>
+<style>
+body{margin:0;padding:0;background:#020617;font-family:'Segoe UI',Helvetica,Arial,sans-serif;}
+.wrapper{max-width:600px;margin:0 auto;background:#020617;}
+.header{text-align:center;padding:28px 24px 20px;border-bottom:1px solid rgba(234,179,8,0.2);}
+.logo-box{display:inline-block;background:#EAB308;padding:10px 18px;border-radius:8px;margin-bottom:10px;}
+.logo-text{font-size:26px;font-weight:900;color:#020617;letter-spacing:2px;}
+.brand-name{color:#EAB308;font-size:18px;margin:8px 0 2px;letter-spacing:3px;}
+.brand-sub{color:#94a3b8;font-size:10px;margin:0;letter-spacing:2px;text-transform:uppercase;}
+.body{padding:36px 28px;}
+.h1{color:#f1f5f9;font-size:24px;font-weight:700;margin:0 0 8px;line-height:1.3;}
+.p{color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 16px;}
+.calendly-card{background:#0f172a;border:2px solid rgba(234,179,8,0.25);border-radius:12px;padding:32px 24px;text-align:center;margin-bottom:24px;}
+.cta-btn{display:inline-block;background:#EAB308;color:#020617;font-weight:800;padding:14px 36px;border-radius:8px;text-decoration:none;font-size:15px;letter-spacing:1px;}
+.agenda{background:#0f172a;border-left:4px solid #EAB308;border-radius:0 8px 8px 0;padding:20px 24px;margin-bottom:20px;}
+.agenda-item{margin-bottom:10px;color:#94a3b8;font-size:13px;line-height:1.6;}
+.agenda-item strong{color:#f1f5f9;}
+.check{color:#EAB308;margin-right:6px;}
+.guarantee{background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.2);border-radius:8px;padding:16px 20px;margin-bottom:20px;text-align:center;}
+.divider{border:none;border-top:1px solid rgba(234,179,8,0.1);margin:24px 0;}
+.footer{border-top:1px solid rgba(234,179,8,0.08);padding:24px 28px;text-align:center;}
+.footer p{color:#475569;font-size:11px;margin:2px 0;line-height:1.6;}
+.footer a{color:#EAB308;text-decoration:none;}
+.jeci{color:#64748b;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo-box"><span class="logo-text">700</span></div>
+    <h1 class="brand-name">700 CREDIT CLUB EXPERTS</h1>
+    <p class="brand-sub">Florida Licensed &bull; Powered by JECI AI &bull; FCRA Compliant</p>
+  </div>
+
+  <div class="body">
+    <p style="color:#EAB308;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:0 0 8px;">Day 2 &mdash; Report Ready</p>
+    <h2 class="h1">Hi {{first_name}}, let's review your audit results together.</h2>
+    <p class="p">
+      Your JECI AI audit is complete. We've identified the violations and inaccuracies on your
+      tri-bureau report. Now it's time to walk through the findings with a certified credit expert —
+      completely free, no upsell pressure.
+    </p>
+
+    <div class="calendly-card">
+      <p style="color:#64748b;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:0 0 4px;">Free Strategy Call</p>
+      <p style="color:#f1f5f9;font-size:20px;font-weight:700;margin:0 0 4px;">30-Minute Report Review</p>
+      <p style="color:#94a3b8;font-size:13px;margin:0 0 20px;">With a Certified Credit Expert</p>
+      <a href="{{calendly_link}}" class="cta-btn">BOOK MY CALL &rarr;</a>
+      <p style="color:#64748b;font-size:11px;margin:16px 0 0;">Free &bull; No pressure &bull; Zoom or phone</p>
+    </div>
+
+    <p class="p">Here's what we'll cover on the call:</p>
+    <div class="agenda">
+      <div class="agenda-item"><span class="check">&#10003;</span><strong>Your violations list</strong> — Every FCRA violation we found across all 3 bureaus</div>
+      <div class="agenda-item"><span class="check">&#10003;</span><strong>Deletion strategy</strong> — Exactly which items we're targeting in Round 1 and why</div>
+      <div class="agenda-item"><span class="check">&#10003;</span><strong>Timeline & expectations</strong> — Realistic projections based on your specific profile</div>
+      <div class="agenda-item"><span class="check">&#10003;</span><strong>Score goals</strong> — We map your current score to your financial target (home, business credit, etc.)</div>
+    </div>
+
+    <div class="guarantee">
+      <p style="color:#EAB308;font-size:12px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:1px;">No Obligation Guarantee</p>
+      <p style="color:#94a3b8;font-size:12px;margin:0;">This is not a sales call. It's a strategy session. You'll hang up knowing exactly what's possible for your credit profile.</p>
+    </div>
+
+    <hr class="divider"/>
+    <p class="p" style="font-size:12px;">
+      Can't find a time that works? Reply to this email and we'll find one that fits.
+      View your audit findings now in your <a href="{{client_portal_link}}" style="color:#EAB308;">client portal</a>.
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>700 Credit Club Experts &bull; Licensed in the State of Florida</p>
+    <p>15 USC 1681 (FCRA) &bull; 15 USC 1692 (FDCPA) Compliant</p>
+    <p><a href="mailto:sales@700creditclubexperts.com">sales@700creditclubexperts.com</a></p>
+    <p style="margin-top:8px;"><a href="{{unsubscribe_link}}" style="color:#475569;font-size:10px;">Unsubscribe</a></p>
+    <p class="jeci">Powered by JECI AI Dispute Agent &bull; &copy; 2025 The 700 Club, LLC</p>
+  </div>
+
+</div>
+</body>
+</html>
