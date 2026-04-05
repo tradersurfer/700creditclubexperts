@@ -16,12 +16,14 @@ import AffiliatePage from "@/pages/Affiliate";
 import ThankYouPage from "@/pages/ThankYou";
 import HomeOwnershipPage from "@/pages/HomeOwnership";
 import FeaturesPage from "@/pages/Features";
+import StartAuditPage from "@/pages/StartAudit";
+import SuccessPage from "@/pages/Success";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 
 function MobileCTA() {
   const [location] = useLocation();
-  if (["/enroll", "/pricing", "/audit", "/thank-you", "/portal", "/affiliate"].includes(location)) return null;
+  if (["/enroll", "/pricing", "/audit", "/start-audit", "/thank-you", "/success", "/portal", "/affiliate"].includes(location)) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-dark-slate/97 backdrop-blur-md border-t border-gold/20 p-3 pb-safe shadow-[0_-8px_32px_rgba(0,0,0,0.4)]">
@@ -68,6 +70,8 @@ function Router() {
       <Route path="/thank-you" component={ThankYouPage} />
       <Route path="/home-ownership" component={HomeOwnershipPage} />
       <Route path="/features" component={FeaturesPage} />
+      <Route path="/start-audit" component={StartAuditPage} />
+      <Route path="/success" component={SuccessPage} />
       <Route component={NotFound} />
     </Switch>
   );
