@@ -27,7 +27,6 @@ export default function App() {
       {/* 2. Page Content area */}
       <main className="pt-16 sm:pt-20"> {/* Padding to prevent Nav overlap */}
         <Switch>
-          <Route path="/" component={Home} />
           <Route path="/audit" component={Audit} />
           <Route path="/enroll" component={Enroll} />
           <Route path="/pricing" component={Enroll} />
@@ -42,6 +41,7 @@ export default function App() {
           <Route path="/freecreditaudit" component={FreeCreditAudit} />
           <Route path="/start-audit" component={StartAudit} />
           <Route path="/success" component={Success} />
+          <Route path="/" component={Home} />
           
           {/* Default/404 */}
           <Route>
