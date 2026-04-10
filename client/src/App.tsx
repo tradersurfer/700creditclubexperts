@@ -3,7 +3,6 @@ import Navbar from "@/components/Navbar"; // Make sure this path is correct
 // import Subnav from "@/components/Subnav"; // Uncomment if you have a separate Subnav component
 
 // Page Imports
-import Home from "./pages/Home";
 import Audit from "./pages/Audit";
 import Enroll from "./pages/Enroll";
 import Programs from "./pages/Programs";
@@ -16,7 +15,8 @@ import HomeOwnership from "./pages/HomeOwnership";
 import Features from "./pages/Features";
 import StartAudit from "./pages/StartAudit";
 import Success from "./pages/Success";
-import FreeCreditAudit from "./pages/FreeCreditAudit"; 
+import FreeCreditAudit from "./pages/FreeCreditAudit";
+import Home from "./pages/Home"; 
 
 export default function App() {
   return (
