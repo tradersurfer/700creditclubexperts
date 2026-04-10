@@ -1,5 +1,8 @@
 import { Switch, Route } from "wouter";
+import Navbar from "@/components/Navbar"; // Make sure this path is correct
+// import Subnav from "@/components/Subnav"; // Uncomment if you have a separate Subnav component
 
+// Page Imports
 import Home from "./pages/Home";
 import Audit from "./pages/Audit";
 import Enroll from "./pages/Enroll";
@@ -15,28 +18,39 @@ import StartAudit from "./pages/StartAudit";
 import Success from "./pages/Success";
 import FreeCreditAudit from "./pages/FreeCreditAudit"; 
 
-function Router() {
+export default function App() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/audit" component={Audit} />
-      <Route path="/enroll" component={Enroll} />
-      <Route path="/pricing" component={Enroll} />
-      <Route path="/programs" component={Programs} />
-      <Route path="/business-credit" component={BusinessCredit} />
-      <Route path="/about" component={About} />
-      <Route path="/portal" component={Portal} />
-      <Route path="/affiliate" component={Affiliate} />
-      <Route path="/thank-you" component={ThankYou} />
-      <Route path="/home-ownership" component={HomeOwnership} />
-      <Route path="/features" component={Features} />
-      <Route path="/freecreditaudit" component={FreeCreditAudit} />
+    <div className="min-h-screen bg-dark-slate">
+      {/* 1. Global Navigation stays outside the Switch */}
+      <Navbar />
       
-      <Route path="/start-audit" component={StartAudit} />
-      <Route path="/success" component={Success} />
-
-    </Switch>
+      {/* 2. Page Content area */}
+      <main className="pt-16 sm:pt-20"> {/* Padding to prevent Nav overlap */}
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/audit" component={Audit} />
+          <Route path="/enroll" component={Enroll} />
+          <Route path="/pricing" component={Enroll} />
+          <Route path="/programs" component={Programs} />
+          <Route path="/business-credit" component={BusinessCredit} />
+          <Route path="/about" component={About} />
+          <Route path="/portal" component={Portal} />
+          <Route path="/affiliate" component={Affiliate} />
+          <Route path="/thank-you" component={ThankYou} />
+          <Route path="/home-ownership" component={HomeOwnership} />
+          <Route path="/features" component={Features} />
+          <Route path="/freecreditaudit" component={FreeCreditAudit} />
+          <Route path="/start-audit" component={StartAudit} />
+          <Route path="/success" component={Success} />
+          
+          {/* Default/404 */}
+          <Route>
+            <div className="flex items-center justify-center min-h-[60vh] text-white font-display text-4xl">
+              404 - Page Not Found
+            </div>
+          </Route>
+        </Switch>
+      </main>
+    </div>
   );
 }
-
-export default Router;
