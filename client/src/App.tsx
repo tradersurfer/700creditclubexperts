@@ -1,40 +1,40 @@
 import { Switch, Route } from "wouter";
 
-import HomePage from "./pages/HomePage";
-import AuditPage from "./pages/AuditPage";
-import EnrollPage from "./pages/EnrollPage";
-import ProgramsPage from "./pages/ProgramsPage";
-import BusinessCreditPage from "./pages/BusinessCreditPage";
-import AboutPage from "./pages/AboutPage";
-import PortalPage from "./pages/PortalPage";
-import AffiliatePage from "./pages/AffiliatePage";
-import ThankYouPage from "./pages/ThankYouPage";
-import HomeOwnershipPage from "./pages/HomeOwnershipPage";
-import FeaturesPage from "./pages/FeaturesPage";
-import StartAuditPage from "./pages/StartAuditPage";
-import SuccessPage from "./pages/SuccessPage";
+import Home from "./pages/Home";
+import Audit from "./pages/Audit";
+import Enroll from "./pages/Enroll";
+import Programs from "./pages/Programs";
+import BusinessCredit from "./pages/BusinessCredit";
+import About from "./pages/About";
+import Portal from "./pages/Portal";
+import Affiliate from "./pages/Affiliate";
+import ThankYou from "./pages/ThankYou";
+import HomeOwnership from "./pages/HomeOwnership";
+import Features from "./pages/Features";
+import StartAudit from "./pages/StartAudit";
+import Success from "./pages/Success";
 import NotFound from "./pages/NotFound";
-import FreeCreditAudit from "./pages/FreeCreditAuditPage"; 
+import FreeCreditAudit from "./pages/FreeCreditAudit"; 
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/audit" component={AuditPage} />
-      <Route path="/enroll" component={EnrollPage} />
-      <Route path="/pricing" component={EnrollPage} />
-      <Route path="/programs" component={ProgramsPage} />
-      <Route path="/business-credit" component={BusinessCreditPage} />
-      <Route path="/about" component={AboutPage} />
-      <Route path="/portal" component={PortalPage} />
-      <Route path="/affiliate" component={AffiliatePage} />
-      <Route path="/thank-you" component={ThankYouPage} />
-      <Route path="/home-ownership" component={HomeOwnershipPage} />
-      <Route path="/features" component={FeaturesPage} />
+      <Route path="/" component={Home} />
+      <Route path="/audit" component={Audit} />
+      <Route path="/enroll" component={Enroll} />
+      <Route path="/pricing" component={Enroll} />
+      <Route path="/programs" component={Programs} />
+      <Route path="/business-credit" component={BusinessCredit} />
+      <Route path="/about" component={About} />
+      <Route path="/portal" component={Portal} />
+      <Route path="/affiliate" component={Affiliate} />
+      <Route path="/thank-you" component={ThankYou} />
+      <Route path="/home-ownership" component={HomeOwnership} />
+      <Route path="/features" component={Features} />
       <Route path="/freecreditaudit" component={FreeCreditAudit} />
       
-      <Route path="/start-audit" component={StartAuditPage} />
-      <Route path="/success" component={SuccessPage} />
+      <Route path="/start-audit" component={StartAudit} />
+      <Route path="/success" component={Success} />
 
       {/* Default route (404) */}
       <Route component={NotFound} />
