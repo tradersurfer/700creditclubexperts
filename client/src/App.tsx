@@ -38,7 +38,7 @@ export default function App() {
           <Route path="/thank-you" component={ThankYou} />
           <Route path="/home-ownership" component={HomeOwnership} />
           <Route path="/features" component={Features} />
-          <Route path="/freecreditaudit" component={FreeCreditAudit} />
+          <Route path="/free-credit-audit" component={FreeCreditAudit} />
           <Route path="/start-audit" component={StartAudit} />
           <Route path="/success" component={Success} />
           <Route path="/" component={Home} />
