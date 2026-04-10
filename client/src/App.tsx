@@ -1,6 +1,4 @@
-import React from "react";
-import { Switch, Route } from "react-router-dom";
-
+import { Switch, Route } from "wouter";
 // Standard Page Imports
 import HomePage from "./pages/HomePage";
 import AuditPage from "./pages/AuditPage";
@@ -16,18 +14,12 @@ import FeaturesPage from "./pages/FeaturesPage";
 import StartAuditPage from "./pages/StartAuditPage";
 import SuccessPage from "./pages/SuccessPage";
 import NotFound from "./pages/NotFound";
-
-// The specific import you requested
 import FreeCreditAudit from "./pages/FreeCreditAudit"; 
 
 function Router() {
   return (
     <Switch>
-      {/* CRITICAL: The 'exact' prop prevents the "/" path from 
-          matching every single URL and blocking other routes. 
-      */}
-      <Route exact path="/" component={HomePage} />
-      
+      <Route path="/" component={HomePage} />
       <Route path="/audit" component={AuditPage} />
       <Route path="/enroll" component={EnrollPage} />
       <Route path="/pricing" component={EnrollPage} />
@@ -39,14 +31,12 @@ function Router() {
       <Route path="/thank-you" component={ThankYouPage} />
       <Route path="/home-ownership" component={HomeOwnershipPage} />
       <Route path="/features" component={FeaturesPage} />
-      
-      {/* New Route for Free Credit Audit */}
       <Route path="/freecreditaudit" component={FreeCreditAudit} />
       
       <Route path="/start-audit" component={StartAuditPage} />
       <Route path="/success" component={SuccessPage} />
-      
-      {/* Fallback for 404 pages */}
+
+      {/* Default route (404) */}
       <Route component={NotFound} />
     </Switch>
   );
