@@ -13,7 +13,6 @@ import HomeOwnership from "./pages/HomeOwnership";
 import Features from "./pages/Features";
 import StartAudit from "./pages/StartAudit";
 import Success from "./pages/Success";
-import NotFound from "./pages/NotFound";
 import FreeCreditAudit from "./pages/FreeCreditAudit"; 
 
 function Router() {
@@ -36,8 +35,6 @@ function Router() {
       <Route path="/start-audit" component={StartAudit} />
       <Route path="/success" component={Success} />
 
-      {/* Default route (404) */}
-      <Route component={NotFound} />
     </Switch>
   );
 }
