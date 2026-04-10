@@ -1,5 +1,5 @@
 import { Switch, Route } from "wouter";
-// Standard Page Imports
+
 import HomePage from "./pages/HomePage";
 import AuditPage from "./pages/AuditPage";
 import EnrollPage from "./pages/EnrollPage";
@@ -14,7 +14,7 @@ import FeaturesPage from "./pages/FeaturesPage";
 import StartAuditPage from "./pages/StartAuditPage";
 import SuccessPage from "./pages/SuccessPage";
 import NotFound from "./pages/NotFound";
-import FreeCreditAudit from "./pages/FreeCreditAudit"; 
+import FreeCreditAudit from "./pages/FreeCreditAuditPage"; 
 
 function Router() {
   return (
