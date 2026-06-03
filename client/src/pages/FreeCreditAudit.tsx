@@ -913,7 +913,7 @@ export default function FreeCreditAudit() {
               <p className="text-slate-400 text-lg mb-12">
                 Our certified specialists manage disputes and credit building so you can focus on your financial future.
               </p>
-              <a href="https://www.700creditclubexperts.com" target="_blank" rel="noreferrer">
+              <a href="/start-audit">
                 <Button size="lg" className="bg-[#C9A84C] hover:bg-[#E8C97A] text-[#070F1E] font-bold px-12 h-14 text-lg">
                   Start My Credit Repair →
                 </Button>
