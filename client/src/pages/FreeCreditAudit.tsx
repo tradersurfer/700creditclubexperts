@@ -107,7 +107,7 @@ interface AuditReport {
 // ─── JECI AI Analysis Call (proxied through Netlify function) ────────────────
 
 async function runJeciAnalysis(reportText: string): Promise<AuditReport> {
-  const response = await fetch("/.netlify/functions/analyze-credit", {
+  const response = await fetch("https://jeci-dispute-agent-production.up.railway.app/api/free-audit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reportText }),
