@@ -8,6 +8,10 @@
 
 [functions]
   node_bundler = "esbuild"
+  timeout = 26
+
+[functions."analyze-credit"]
+  timeout = 26
 
 [[redirects]]
   from = "/api/analyze-credit"

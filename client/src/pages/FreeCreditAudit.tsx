@@ -107,17 +107,26 @@ interface AuditReport {
 // ─── JECI AI Analysis Call (proxied through Netlify function) ────────────────
 
 async function runJeciAnalysis(reportText: string): Promise<AuditReport> {
-  const response = await fetch("/api/analyze-credit", {
+  const response = await fetch("/.netlify/functions/analyze-credit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reportText }),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data?.error || `Server error ${response.status}`);
+    // Avoid trying to parse HTML error pages as JSON
+    let message = `Server error ${response.status}`;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const err = await response.json().catch(() => ({}));
+      message = (err as any)?.error || message;
+    }
+    throw new Error(message);
   }
+
+  const data = await response.json().catch(() => {
+    throw new Error("Analysis service returned an unreadable response.");
+  });
 
   if (!data.report) {
     throw new Error("No report returned from analysis service.");
