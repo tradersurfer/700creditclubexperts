@@ -10,6 +10,12 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/api/analyze-credit"
+  to = "/.netlify/functions/analyze-credit"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api"
   status = 200

@@ -3,14 +3,14 @@
  * 700 Credit Club Experts — /free-credit-audit
  *
  * CHANGES FROM ORIGINAL:
- *  - handleFileProcess now calls JECI AI (Anthropic API) for real analysis
+ *  - handleFileProcess now calls JECI AI for real analysis via /api/analyze-credit
  *  - Full 8-section audit report renders inline after upload
  *  - reportRef scrolls the user down to results automatically
  *  - CreditAuditWidget extracted as reusable embed (see CreditAuditWidget.tsx)
  *  - All marketing sections preserved exactly as original
  *
- * ENV REQUIRED:
- *  VITE_ANTHROPIC_API_KEY  — set in Railway environment variables
+ * The Anthropic API call is server-side only (functions/analyze-credit.mjs).
+ * No API key is exposed to the browser bundle.
  */
 
 import React, { useState, useRef } from "react";
@@ -104,118 +104,26 @@ interface AuditReport {
   };
 }
 
-// ─── JECI AI System Prompt ────────────────────────────────────────────────────
-
-const JECI_SYSTEM_PROMPT = `You are a Senior Credit Analyst for 700 Credit Club Experts — a professional credit consulting firm. Your job is to analyze a client's credit report data and produce a comprehensive, professional Credit Audit Report.
-
-TONE: Professional, educational, empathetic. Write in plain language that any adult can understand.
-IMPORTANT RULES:
-- Do NOT give legal advice
-- Do NOT guarantee score increases or item removals
-- Do NOT reproduce personal SSN, full account numbers, or private identifiers
-- DO cite specific FCRA sections where relevant (educational context only)
-- DO provide actionable, specific guidance
-
-You must respond in valid JSON only. No markdown, no preamble, no explanation outside JSON.
-
-Return this exact structure:
-{
-  "clientName": "string",
-  "reportDate": "string",
-  "estimatedScore": "string",
-  "bureaus": "string",
-  "snapshot": {
-    "totalAccounts": "number or string",
-    "openAccounts": "number or string",
-    "closedAccounts": "number or string",
-    "derogatoryAccounts": "number or string",
-    "collections": "number or string",
-    "chargeOffs": "number or string",
-    "latePayments": "number or string",
-    "hardInquiries": "number or string",
-    "utilization": "string like '67%'",
-    "healthRating": "Excellent|Good|Fair|Needs Improvement|High Risk",
-    "healthExplanation": "2-3 sentences explaining the rating"
-  },
-  "negativeItems": [
-    {
-      "accountName": "string",
-      "accountType": "string",
-      "balance": "string",
-      "status": "Collection|Charge-Off|Late Payment|etc",
-      "dateOpened": "string",
-      "lastActivity": "string",
-      "bureaus": ["Experian","Equifax","TransUnion"],
-      "scoreImpact": "1-2 sentences",
-      "lenderView": "1-2 sentences",
-      "disputability": "Potentially Disputable|Verify First|Likely Verifiable"
-    }
-  ],
-  "utilization": {
-    "currentPct": "string",
-    "explanation": "paragraph",
-    "accounts": [
-      { "name": "string", "limit": "string", "balance": "string", "utilPct": "string" }
-    ],
-    "recommendation": "paragraph"
-  },
-  "inquiries": [
-    { "creditor": "string", "date": "string", "bureau": "string" }
-  ],
-  "inquiryAnalysis": "paragraph about inquiry impact",
-  "creditAge": {
-    "averageAge": "string",
-    "oldestAccount": "string",
-    "accountTypes": ["string"],
-    "analysis": "paragraph"
-  },
-  "improvementPlan": {
-    "phase1": { "title": "Clean Up Negative Items", "steps": ["string"] },
-    "phase2": { "title": "Lower Credit Utilization", "steps": ["string"] },
-    "phase3": { "title": "Strengthen the Credit Profile", "steps": ["string"] }
-  },
-  "scorePotential": {
-    "range": "e.g. +60 to +120 points",
-    "factors": [
-      { "label": "string", "points": "string e.g. +20 to +40", "pct": number }
-    ],
-    "caveat": "sentence about individual results varying"
-  }
-}
-
-If data is not available, make professional estimates and note them. Always produce a complete, useful report.`;
-
-// ─── JECI AI Analysis Call ────────────────────────────────────────────────────
+// ─── JECI AI Analysis Call (proxied through Netlify function) ────────────────
 
 async function runJeciAnalysis(reportText: string): Promise<AuditReport> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("VITE_ANTHROPIC_API_KEY not configured.");
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("/api/analyze-credit", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system: JECI_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: reportText }],
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reportText }),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message || `API error ${response.status}`);
+    throw new Error(data?.error || `Server error ${response.status}`);
   }
 
-  const data = await response.json();
-  const raw: string = data.content?.[0]?.text ?? "";
-  const clean = raw.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean) as AuditReport;
+  if (!data.report) {
+    throw new Error("No report returned from analysis service.");
+  }
+
+  return data.report as AuditReport;
 }
 
 // ─── Helper: read file as text ────────────────────────────────────────────────
@@ -752,7 +660,6 @@ export default function FreeCreditAudit() {
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <strong>Analysis Error:</strong> {error}
-                    <br /><span className="text-red-400/70 text-xs">Check that VITE_ANTHROPIC_API_KEY is set in Railway environment variables.</span>
                   </div>
                 </div>
               )}

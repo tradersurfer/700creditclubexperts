@@ -13,8 +13,8 @@
  *     ctaLabel="Get Started"     // override CTA button text
  *   />
  *
- * ENV REQUIRED:
- *   VITE_ANTHROPIC_API_KEY
+ * The Anthropic API call is proxied through /api/analyze-credit (server-side).
+ * No API key is exposed to the browser bundle.
  *
  * Self-contained — no external page layout dependencies.
  * Includes its own upload zone, analysis engine, and full 8-section report.
@@ -87,33 +87,23 @@ JSON structure:
 Rules: No legal advice. No guaranteed outcomes. No SSNs or full account numbers. FCRA citations for education only. If data is missing, make professional estimates.`;
 
 async function analyzeReport(text: string): Promise<AuditReport> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("VITE_ANTHROPIC_API_KEY not set in environment.");
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/analyze-credit", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: text }],
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reportText: text }),
   });
 
+  const data = await res.json();
+
   if (!res.ok) {
-    const e = await res.json().catch(() => ({}));
-    throw new Error((e as any)?.error?.message ?? `API ${res.status}`);
+    throw new Error(data?.error ?? `Server error ${res.status}`);
   }
 
-  const data = await res.json();
-  const raw  = data.content?.[0]?.text ?? "";
-  return JSON.parse(raw.replace(/```json|```/g, "").trim()) as AuditReport;
+  if (!data.report) {
+    throw new Error("No report returned from analysis service.");
+  }
+
+  return data.report as AuditReport;
 }
 
 // ─── Mini sub-components ──────────────────────────────────────────────────────
