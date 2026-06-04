@@ -5,11 +5,10 @@
  * Accepts: POST { reportText: string }
  * Returns: { report: AuditReport } | { error: string }
  *
- * ANTHROPIC_API_KEY must be set in Netlify environment variables
- * (no VITE_ prefix — this runs server-side, never in the JS bundle).
+ * Uses a direct fetch to the Anthropic API — no SDK import — so there is
+ * nothing to bundle and no secrets scanner risk.
+ * ANTHROPIC_API_KEY must be set in Netlify environment variables.
  */
-
-import Anthropic from "@anthropic-ai/sdk";
 
 const JECI_SYSTEM_PROMPT = `You are a Senior Credit Analyst for 700 Credit Club Experts — a professional credit consulting firm. Your job is to analyze a client's credit report data and produce a comprehensive, professional Credit Audit Report.
 
@@ -90,80 +89,49 @@ Return this exact structure:
 
 If data is not available, make professional estimates and note them. Always produce a complete, useful report.`;
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin":  "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
 export const handler = async (event) => {
-  // Handle CORS preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: CORS_HEADERS, body: "" };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
-  }
-
-  let reportText;
-  try {
-    const body = JSON.parse(event.body ?? "{}");
-    reportText = body.reportText;
-  } catch {
-    return {
-      statusCode: 400,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid JSON body" }),
-    };
-  }
-
-  if (!reportText || typeof reportText !== "string" || !reportText.trim()) {
-    return {
-      statusCode: 400,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "reportText is required" }),
-    };
-  }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "ANTHROPIC_API_KEY is not configured on the server." }),
-    };
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    const client = new Anthropic({ apiKey });
+    const { reportText } = JSON.parse(event.body);
 
-    const message = await client.messages.create({
-      model:      "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system:     JECI_SYSTEM_PROMPT,
-      messages:   [{ role: "user", content: reportText }],
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        system: JECI_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: reportText }],
+      }),
     });
 
-    const raw   = message.content?.[0]?.text ?? "";
-    const clean = raw.replace(/```json|```/g, "").trim();
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err?.error?.message || 'Anthropic API error');
+    }
+
+    const data = await response.json();
+    const raw = data.content?.[0]?.text ?? '';
+    const clean = raw.replace(/```json|```/g, '').trim();
     const report = JSON.parse(clean);
 
     return {
       statusCode: 200,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ report }),
     };
   } catch (err) {
-    console.error("[analyze-credit] Error:", err);
     return {
       statusCode: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: err.message ?? "Analysis failed" }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };
