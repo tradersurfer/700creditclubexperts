@@ -104,51 +104,26 @@ interface AuditReport {
   };
 }
 
-// ─── JECI AI Analysis Call (proxied through Netlify function) ────────────────
+// ─── JECI AI Analysis Call ────────────────────────────────────────────────────
 
-async function runJeciAnalysis(reportText: string): Promise<AuditReport> {
-  const response = await fetch("/.netlify/functions/analyze-credit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reportText }),
-  });
+async function runJeciAnalysis(file: File, firstName: string, lastName: string): Promise<AuditReport> {
+  const formData = new FormData()
+  formData.append('pdf', file)
+  formData.append('clientName', `${firstName} ${lastName}`)
+
+  const response = await fetch(
+    'https://jecicredit.com/api/free-audit',
+    { method: 'POST', body: formData }
+  )
 
   if (!response.ok) {
-    // Avoid trying to parse HTML error pages as JSON
-    let message = `Server error ${response.status}`;
-    const contentType = response.headers.get("content-type") ?? "";
-    if (contentType.includes("application/json")) {
-      const err = await response.json().catch(() => ({}));
-      message = (err as any)?.error || message;
-    }
-    throw new Error(message);
+    const err = await response.json().catch(() => ({}))
+    throw new Error((err as any)?.error || `Server error ${response.status}`)
   }
 
-  const data = await response.json().catch(() => {
-    throw new Error("Analysis service returned an unreadable response.");
-  });
-
-  if (!data.report) {
-    throw new Error("No report returned from analysis service.");
-  }
-
-  return data.report as AuditReport;
-}
-
-// ─── Helper: read file as text ────────────────────────────────────────────────
-
-function readFileAsText(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target?.result as string ?? "");
-    reader.onerror = () => reject(new Error("Could not read file"));
-    if (file.type === "application/pdf") {
-      // For PDFs we pass a note; in production wire pdf.js or server-side extraction
-      resolve(`[PDF file: ${file.name}] — Please analyze based on the filename and any extractable metadata. Generate a representative professional credit audit for a client with mixed credit profile.`);
-    } else {
-      reader.readAsText(file);
-    }
-  });
+  const data = await response.json()
+  if (!data.report) throw new Error('No report returned.')
+  return data.report as AuditReport
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -521,34 +496,31 @@ export default function FreeCreditAudit() {
   const [isAnalyzing, setIsAnalyzing]   = useState(false);
   const [statusMsg, setStatusMsg]       = useState("");
   const [error, setError]               = useState<string | null>(null);
-  const [file, setFile, ]               = useState<File | null>(null);
+  const [file, setFile]                 = useState<File | null>(null);
   const [report, setReport]             = useState<AuditReport | null>(null);
   const [openFaq, setOpenFaq]           = useState<number | null>(null);
-  const [pasteText, setPasteText]       = useState("");
-  const [showPaste, setShowPaste]       = useState(false);
+  const [firstName, setFirstName]       = useState('');
+  const [lastName, setLastName]         = useState('');
   const fileInputRef                    = useRef<HTMLInputElement>(null);
   const reportRef                       = useRef<HTMLDivElement>(null);
 
   const handleFileProcess = async (selectedFile: File) => {
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Please enter your first and last name before uploading.");
+      return;
+    }
     setFile(selectedFile);
     setIsAnalyzing(true);
     setError(null);
     setReport(null);
 
     try {
-      setStatusMsg("Reading your credit report...");
-      const text = await readFileAsText(selectedFile);
-
       setStatusMsg("JECI AI is analyzing your credit profile...");
-      await new Promise(r => setTimeout(r, 400));
-
-      setStatusMsg("Identifying negative items · Scanning all three bureaus...");
-      const result = await runJeciAnalysis(text || pasteText || "Generate a representative audit.");
+      const result = await runJeciAnalysis(selectedFile, firstName.trim(), lastName.trim());
 
       setReport(result);
       setIsAnalyzing(false);
 
-      // Scroll to report
       setTimeout(() => {
         reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 200);
@@ -559,30 +531,12 @@ export default function FreeCreditAudit() {
     }
   };
 
-  const handlePasteAnalyze = async () => {
-    if (!pasteText.trim()) return;
-    setIsAnalyzing(true);
-    setError(null);
-    setReport(null);
-
-    try {
-      setStatusMsg("JECI AI is analyzing your credit data...");
-      const result = await runJeciAnalysis(pasteText);
-      setReport(result);
-      setIsAnalyzing(false);
-      setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
-    } catch (err: any) {
-      setIsAnalyzing(false);
-      setError(err.message ?? "Analysis failed.");
-    }
-  };
-
   const resetAll = () => {
     setReport(null);
     setFile(null);
-    setPasteText("");
     setError(null);
-    setShowPaste(false);
+    setFirstName('');
+    setLastName('');
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -614,6 +568,25 @@ export default function FreeCreditAudit() {
           {/* Upload / Analyzing / Error states */}
           {!isAnalyzing && !report && (
             <>
+              <div className="max-w-xl mx-auto space-y-3 mb-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    className="w-full bg-white/5 border border-[#C9A84C]/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#C9A84C]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    className="w-full bg-white/5 border border-[#C9A84C]/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#C9A84C]"
+                  />
+                </div>
+              </div>
+
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="max-w-xl mx-auto bg-white/5 border-2 border-dashed border-[#C9A84C]/40 rounded-2xl p-12 cursor-pointer hover:bg-[#C9A84C]/5 transition-all group"
@@ -622,53 +595,27 @@ export default function FreeCreditAudit() {
                   <Upload className="text-[#C9A84C] w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Upload Your Credit Report</h3>
-                <p className="text-slate-500 text-sm mb-6">Drag & drop your PDF or image here or click to browse</p>
+                <p className="text-slate-500 text-sm mb-6">Click to browse or drag & drop your PDF here</p>
                 <Button className="bg-[#C9A84C] hover:bg-[#E8C97A] text-[#070F1E] font-bold px-8">
                   Choose File
                 </Button>
                 <p className="text-slate-600 text-[10px] mt-6 tracking-wide uppercase">
-                  Supports: PDF · TXT · Max 10MB
+                  PDF Only · Max 10MB
                 </p>
                 <input
                   type="file"
                   className="hidden"
                   ref={fileInputRef}
-                  accept=".pdf,.txt,.doc,.docx"
+                  accept=".pdf"
                   onChange={(e) => e.target.files?.[0] && handleFileProcess(e.target.files[0])}
                 />
               </div>
-
-              {/* Paste toggle */}
-              <button
-                onClick={() => setShowPaste(v => !v)}
-                className="mt-4 text-slate-500 text-sm hover:text-[#C9A84C] transition-colors underline underline-offset-2"
-              >
-                {showPaste ? "Hide" : "Or paste report text instead"}
-              </button>
-
-              {showPaste && (
-                <div className="max-w-xl mx-auto mt-4 text-left">
-                  <textarea
-                    value={pasteText}
-                    onChange={e => setPasteText(e.target.value)}
-                    placeholder="Paste your credit report text here..."
-                    className="w-full bg-white/5 border border-[#C9A84C]/30 rounded-xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#C9A84C] min-h-[120px] resize-y"
-                  />
-                  <Button
-                    onClick={handlePasteAnalyze}
-                    disabled={!pasteText.trim()}
-                    className="w-full mt-2 bg-[#C9A84C] hover:bg-[#E8C97A] text-[#070F1E] font-bold"
-                  >
-                    Analyze Report Text →
-                  </Button>
-                </div>
-              )}
 
               {error && (
                 <div className="max-w-xl mx-auto mt-4 bg-red-900/30 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm text-left flex gap-3">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
-                    <strong>Analysis Error:</strong> {error}
+                    <strong>Error:</strong> {error}
                   </div>
                 </div>
               )}
