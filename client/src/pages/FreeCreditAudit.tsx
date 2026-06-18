@@ -106,24 +106,106 @@ interface AuditReport {
 
 // ─── JECI AI Analysis Call ────────────────────────────────────────────────────
 
-async function runJeciAnalysis(file: File, firstName: string, lastName: string): Promise<AuditReport> {
-  const formData = new FormData()
-  formData.append('pdf', file)
-  formData.append('clientName', `${firstName} ${lastName}`)
+const JECI_SYSTEM_PROMPT = `You are a Senior Credit Analyst for 700 Credit Club Experts. Analyze the provided credit report data and respond ONLY in valid JSON — no markdown, no preamble.
 
-  const response = await fetch(
-    'https://jecicredit.com/api/free-audit',
-    { method: 'POST', body: formData }
-  )
+JSON structure:
+{
+  "clientName":"string","reportDate":"string","estimatedScore":"string","bureaus":"string",
+  "snapshot":{"totalAccounts":"","openAccounts":"","closedAccounts":"","derogatoryAccounts":"","collections":"","chargeOffs":"","latePayments":"","hardInquiries":"","utilization":"","healthRating":"Excellent|Good|Fair|Needs Improvement|High Risk","healthExplanation":""},
+  "negativeItems":[{"accountName":"","accountType":"","balance":"","status":"","dateOpened":"","lastActivity":"","bureaus":[],"scoreImpact":"","lenderView":"","disputability":"Potentially Disputable|Verify First|Likely Verifiable"}],
+  "utilization":{"currentPct":"","explanation":"","accounts":[{"name":"","limit":"","balance":"","utilPct":""}],"recommendation":""},
+  "inquiries":[{"creditor":"","date":"","bureau":""}],
+  "inquiryAnalysis":"",
+  "creditAge":{"averageAge":"","oldestAccount":"","accountTypes":[],"analysis":""},
+  "improvementPlan":{"phase1":{"title":"","steps":[]},"phase2":{"title":"","steps":[]},"phase3":{"title":"","steps":[]}},
+  "scorePotential":{"range":"","factors":[{"label":"","points":"","pct":0}],"caveat":""}
+}
+
+Rules: No legal advice. No guaranteed outcomes. No SSNs or full account numbers. FCRA citations for education only. If data is missing, make professional estimates.`;
+
+async function runJeciAnalysis(file: File, firstName: string, lastName: string): Promise<AuditReport> {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY;
+  if (!apiKey) throw new Error("API key not configured. Contact support.");
+
+  const content = await new Promise<any>((resolve, reject) => {
+    const reader = new FileReader();
+    if (file.type === 'application/pdf') {
+      reader.onload = e => resolve({
+        type: "document",
+        source: { type: "base64", media_type: "application/pdf", data: (e.target?.result as string).split(',')[1] }
+      });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    } else {
+      reader.onload = e => resolve({ type: "text", text: e.target?.result as string });
+      reader.onerror = reject;
+      reader.readAsText(file);
+    }
+  });
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4000,
+      system: JECI_SYSTEM_PROMPT,
+      messages: [{
+        role: "user",
+        content: [
+          content,
+          { type: "text", text: `Client Name: ${firstName} ${lastName}\nReport Date: ${new Date().toLocaleDateString()}\n\nAnalyze this credit report and return the full JSON audit.` }
+        ]
+      }],
+    }),
+  });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}))
-    throw new Error((err as any)?.error || `Server error ${response.status}`)
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message ?? `API error ${response.status}`);
   }
 
-  const data = await response.json()
-  if (!data.report) throw new Error('No report returned.')
-  return data.report as AuditReport
+  const data = await response.json();
+  const raw = data.content?.[0]?.text ?? "";
+  return JSON.parse(raw.replace(/```json|```/g, "").trim()) as AuditReport;
+}
+
+async function runJeciAnalysisText(text: string, firstName: string, lastName: string): Promise<AuditReport> {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY;
+  if (!apiKey) throw new Error("API key not configured. Contact support.");
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4000,
+      system: JECI_SYSTEM_PROMPT,
+      messages: [{
+        role: "user",
+        content: `Client Name: ${firstName} ${lastName}\nReport Date: ${new Date().toLocaleDateString()}\n\n${text}`
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message ?? `API error ${response.status}`);
+  }
+
+  const data = await response.json();
+  const raw = data.content?.[0]?.text ?? "";
+  return JSON.parse(raw.replace(/```json|```/g, "").trim()) as AuditReport;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -501,6 +583,8 @@ export default function FreeCreditAudit() {
   const [openFaq, setOpenFaq]           = useState<number | null>(null);
   const [firstName, setFirstName]       = useState('');
   const [lastName, setLastName]         = useState('');
+  const [pasteText, setPasteText]       = useState('');
+  const [showPaste, setShowPaste]       = useState(false);
   const fileInputRef                    = useRef<HTMLInputElement>(null);
   const reportRef                       = useRef<HTMLDivElement>(null);
 
@@ -531,12 +615,35 @@ export default function FreeCreditAudit() {
     }
   };
 
+  const handlePasteAnalyze = async () => {
+    if (!pasteText.trim()) return;
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Please enter your first and last name.");
+      return;
+    }
+    setIsAnalyzing(true);
+    setError(null);
+    setReport(null);
+    try {
+      setStatusMsg("JECI AI is analyzing your credit data...");
+      const result = await runJeciAnalysisText(pasteText, firstName.trim(), lastName.trim());
+      setReport(result);
+      setIsAnalyzing(false);
+      setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+    } catch (err: any) {
+      setIsAnalyzing(false);
+      setError(err.message ?? "Analysis failed.");
+    }
+  };
+
   const resetAll = () => {
     setReport(null);
     setFile(null);
     setError(null);
     setFirstName('');
     setLastName('');
+    setPasteText('');
+    setShowPaste(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -610,6 +717,31 @@ export default function FreeCreditAudit() {
                   onChange={(e) => e.target.files?.[0] && handleFileProcess(e.target.files[0])}
                 />
               </div>
+
+              <button
+                onClick={() => setShowPaste(v => !v)}
+                className="mt-4 text-slate-500 text-sm hover:text-[#C9A84C] transition-colors underline underline-offset-2"
+              >
+                {showPaste ? "Hide" : "Or paste report text instead"}
+              </button>
+
+              {showPaste && (
+                <div className="max-w-xl mx-auto mt-4 text-left">
+                  <textarea
+                    value={pasteText}
+                    onChange={e => setPasteText(e.target.value)}
+                    placeholder="Paste your credit report text here..."
+                    className="w-full bg-white/5 border border-[#C9A84C]/30 rounded-xl p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-[#C9A84C] min-h-[120px] resize-y"
+                  />
+                  <button
+                    onClick={handlePasteAnalyze}
+                    disabled={!pasteText.trim()}
+                    className="w-full mt-2 bg-[#C9A84C] hover:bg-[#E8C97A] text-[#070F1E] font-bold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-40"
+                  >
+                    Analyze Report Text →
+                  </button>
+                </div>
+              )}
 
               {error && (
                 <div className="max-w-xl mx-auto mt-4 bg-red-900/30 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm text-left flex gap-3">
