@@ -104,31 +104,59 @@ interface AuditReport {
   };
 }
 
+interface JeciFreeAuditResult {
+  clientName?: string;
+  scores?: {
+    equifax?: number | null;
+    experian?: number | null;
+    transunion?: number | null;
+  };
+  totalAccounts?: number;
+  negativeItems?: number;
+  hardInquiries?: number;
+  publicRecords?: number;
+  flaggedItems?: Array<{ category: string; count: number }>;
+  estimatedRecovery?: string;
+  accounts?: Array<{
+    creditor_name?: string;
+    account_type?: string;
+    balance?: number;
+    status?: string;
+    payment_status?: string;
+    date_opened?: string | null;
+    on_equifax?: boolean;
+    on_experian?: boolean;
+    on_transunion?: boolean;
+  }>;
+  inquiries?: Array<{
+    creditor_name?: string;
+    inquiry_date?: string;
+    on_equifax?: boolean;
+    on_experian?: boolean;
+    on_transunion?: boolean;
+  }>;
+}
+
 // ─── JECI AI Analysis Call ────────────────────────────────────────────────────
 
 async function runJeciAnalysis(file: File, firstName: string, lastName: string): Promise<AuditReport> {
-  const payload = await new Promise<Record<string, string>>((resolve, reject) => {
-    const reader = new FileReader();
-    if (file.type === 'application/pdf') {
-      reader.onload = e => resolve({
-        documentBase64: (e.target?.result as string).split(',')[1],
-        mediaType: "application/pdf",
-        fileName: file.name,
-      });
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    } else {
-      reader.onload = e => resolve({ reportText: e.target?.result as string });
-      reader.onerror = reject;
-      reader.readAsText(file);
-    }
+  const formData = new FormData();
+  formData.append("pdf", file);
+  formData.append("first_name", firstName);
+  formData.append("last_name", lastName);
+
+  const response = await fetch("https://jecicredit.com/api/free-audit", {
+    method: "POST",
+    body: formData,
   });
 
-  return requestJeciAnalysis({
-    ...payload,
-    clientName: `${firstName} ${lastName}`,
-    reportDate: new Date().toLocaleDateString(),
-  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error((data as any)?.error ?? `Server error ${response.status}`);
+  }
+
+  return mapJeciFreeAuditToReport(data as JeciFreeAuditResult, firstName, lastName);
 }
 
 async function runJeciAnalysisText(text: string, firstName: string, lastName: string): Promise<AuditReport> {
@@ -154,6 +182,142 @@ async function requestJeciAnalysis(payload: Record<string, string>): Promise<Aud
 
   if (!(data as any).report) throw new Error("No report returned from analysis service.");
   return (data as any).report as AuditReport;
+}
+
+function mapJeciFreeAuditToReport(audit: JeciFreeAuditResult, firstName: string, lastName: string): AuditReport {
+  const accounts = audit.accounts ?? [];
+  const inquiries = audit.inquiries ?? [];
+  const flaggedItems = audit.flaggedItems ?? [];
+  const negativeAccounts = accounts.filter(isJeciNegativeAccount);
+  const collections = accounts.filter(a => normalize(a.account_type).includes("collection")).length;
+  const chargeOffs = accounts.filter(a => normalize(a.account_type).includes("charge")).length;
+  const latePayments = flaggedItems.find(i => normalize(i.category).includes("late"))?.count ?? 0;
+  const scores = [audit.scores?.equifax, audit.scores?.experian, audit.scores?.transunion]
+    .filter((score): score is number => typeof score === "number" && score > 0);
+  const avgScore = scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : null;
+  const healthRating = getHealthRating(avgScore, audit.negativeItems ?? negativeAccounts.length, audit.publicRecords ?? 0);
+
+  return {
+    clientName: audit.clientName || `${firstName} ${lastName}`.trim() || "Valued Client",
+    reportDate: new Date().toLocaleDateString(),
+    estimatedScore: avgScore ? String(avgScore) : "See bureau scores",
+    bureaus: "Equifax, Experian, TransUnion",
+    snapshot: {
+      totalAccounts: audit.totalAccounts ?? accounts.length,
+      openAccounts: accounts.filter(a => normalize(a.status).includes("open")).length || "See report",
+      closedAccounts: accounts.filter(a => normalize(a.status).includes("closed")).length || "See report",
+      derogatoryAccounts: audit.negativeItems ?? negativeAccounts.length,
+      collections,
+      chargeOffs,
+      latePayments,
+      hardInquiries: audit.hardInquiries ?? inquiries.length,
+      utilization: "See report",
+      healthRating,
+      healthExplanation: buildHealthExplanation(healthRating, audit.negativeItems ?? negativeAccounts.length, audit.hardInquiries ?? inquiries.length),
+    },
+    negativeItems: negativeAccounts.map(account => ({
+      accountName: account.creditor_name || "Unknown creditor",
+      accountType: account.account_type || "Account",
+      balance: formatMoney(account.balance),
+      status: account.status || account.payment_status || "Review recommended",
+      dateOpened: account.date_opened || "Not listed",
+      lastActivity: "Not listed",
+      bureaus: bureausFromJeciFlags(account),
+      scoreImpact: "This item may be suppressing the credit profile and should be reviewed for accuracy.",
+      lenderView: "Lenders may view unresolved derogatory or collection activity as elevated repayment risk.",
+      disputability: "Verify First",
+    })),
+    utilization: {
+      currentPct: "See report",
+      explanation: "The JECI audit engine parsed the report summary. Review revolving balances and limits directly on the source report for exact utilization.",
+      accounts: accounts
+        .filter(account => normalize(account.account_type).includes("revolving"))
+        .map(account => ({
+          name: account.creditor_name || "Revolving account",
+          limit: "Not listed",
+          balance: formatMoney(account.balance),
+          utilPct: "Not listed",
+        })),
+      recommendation: "Prioritize revolving cards reporting above 30% utilization, then work toward reporting below 10% where possible.",
+    },
+    inquiries: inquiries.map(inquiry => ({
+      creditor: inquiry.creditor_name || "Unknown creditor",
+      date: inquiry.inquiry_date || "Not listed",
+      bureau: bureausFromJeciFlags(inquiry).join(", "),
+    })),
+    inquiryAnalysis: `${audit.hardInquiries ?? inquiries.length} hard inquiries were identified. Recent inquiries can create a modest short-term score drag and should be reviewed for permissible purpose.`,
+    creditAge: {
+      averageAge: "See source report",
+      oldestAccount: findOldestAccount(accounts),
+      accountTypes: Array.from(new Set(accounts.map(account => account.account_type || "other"))),
+      analysis: "Account age was summarized from the parsed report. Older positive accounts generally help profile strength, while newer accounts can lower average age.",
+    },
+    improvementPlan: {
+      phase1: { title: "Verify Negative Items", steps: flaggedItems.length ? flaggedItems.map(item => `Review ${item.count} ${item.category.toLowerCase()} for accuracy and documentation.`) : ["Review all derogatory accounts for accuracy, dates, balances, and bureau reporting."] },
+      phase2: { title: "Lower Credit Utilization", steps: ["Identify revolving balances reporting above 30%.", "Pay down high-utilization cards before statement closing dates where possible."] },
+      phase3: { title: "Strengthen the Credit Profile", steps: ["Maintain on-time payments across all active accounts.", "Avoid unnecessary hard inquiries while cleanup is in progress."] },
+    },
+    scorePotential: {
+      range: audit.estimatedRecovery || "Varies by profile",
+      factors: flaggedItems.map((item, index) => ({
+        label: item.category,
+        points: "Potential improvement varies",
+        pct: Math.max(10, Math.min(100, 100 - index * 15)),
+      })),
+      caveat: "Results vary by individual profile, reporting accuracy, creditor verification, and bureau updates. No score increase is guaranteed.",
+    },
+  };
+}
+
+function normalize(value: string | undefined | null): string {
+  return (value || "").toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+function isJeciNegativeAccount(account: NonNullable<JeciFreeAuditResult["accounts"]>[number]): boolean {
+  const type = normalize(account.account_type);
+  const status = normalize(account.status);
+  const payment = normalize(account.payment_status);
+  return type.includes("collection")
+    || type.includes("charge")
+    || status.includes("collection")
+    || status.includes("charge")
+    || payment.includes("late")
+    || payment.includes("derogatory")
+    || payment.includes("unpaid");
+}
+
+function bureausFromJeciFlags(item: { on_equifax?: boolean; on_experian?: boolean; on_transunion?: boolean }): string[] {
+  const bureaus: string[] = [];
+  if (item.on_equifax) bureaus.push("Equifax");
+  if (item.on_experian) bureaus.push("Experian");
+  if (item.on_transunion) bureaus.push("TransUnion");
+  return bureaus.length ? bureaus : ["Equifax", "Experian", "TransUnion"];
+}
+
+function formatMoney(value: number | undefined): string {
+  if (typeof value !== "number") return "Not listed";
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function getHealthRating(score: number | null, negatives: number, publicRecords: number): AuditReport["snapshot"]["healthRating"] {
+  if (publicRecords > 0 || negatives >= 5 || (score !== null && score < 580)) return "High Risk";
+  if (negatives >= 3 || (score !== null && score < 640)) return "Needs Improvement";
+  if (negatives > 0 || (score !== null && score < 700)) return "Fair";
+  if (score !== null && score >= 760) return "Excellent";
+  return "Good";
+}
+
+function buildHealthExplanation(rating: string, negatives: number, inquiries: number): string {
+  return `The JECI audit found ${negatives} negative item(s) and ${inquiries} hard inquiry/inquiries. Overall profile health is rated ${rating} based on parsed score data, derogatory reporting, and inquiry activity.`;
+}
+
+function findOldestAccount(accounts: NonNullable<JeciFreeAuditResult["accounts"]>): string {
+  const dated = accounts
+    .filter(account => account.date_opened)
+    .sort((a, b) => new Date(a.date_opened || "").getTime() - new Date(b.date_opened || "").getTime());
+  return dated[0]?.date_opened || "See source report";
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
