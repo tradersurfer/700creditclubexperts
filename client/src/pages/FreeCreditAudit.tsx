@@ -106,106 +106,54 @@ interface AuditReport {
 
 // ─── JECI AI Analysis Call ────────────────────────────────────────────────────
 
-const JECI_SYSTEM_PROMPT = `You are a Senior Credit Analyst for 700 Credit Club Experts. Analyze the provided credit report data and respond ONLY in valid JSON — no markdown, no preamble.
-
-JSON structure:
-{
-  "clientName":"string","reportDate":"string","estimatedScore":"string","bureaus":"string",
-  "snapshot":{"totalAccounts":"","openAccounts":"","closedAccounts":"","derogatoryAccounts":"","collections":"","chargeOffs":"","latePayments":"","hardInquiries":"","utilization":"","healthRating":"Excellent|Good|Fair|Needs Improvement|High Risk","healthExplanation":""},
-  "negativeItems":[{"accountName":"","accountType":"","balance":"","status":"","dateOpened":"","lastActivity":"","bureaus":[],"scoreImpact":"","lenderView":"","disputability":"Potentially Disputable|Verify First|Likely Verifiable"}],
-  "utilization":{"currentPct":"","explanation":"","accounts":[{"name":"","limit":"","balance":"","utilPct":""}],"recommendation":""},
-  "inquiries":[{"creditor":"","date":"","bureau":""}],
-  "inquiryAnalysis":"",
-  "creditAge":{"averageAge":"","oldestAccount":"","accountTypes":[],"analysis":""},
-  "improvementPlan":{"phase1":{"title":"","steps":[]},"phase2":{"title":"","steps":[]},"phase3":{"title":"","steps":[]}},
-  "scorePotential":{"range":"","factors":[{"label":"","points":"","pct":0}],"caveat":""}
-}
-
-Rules: No legal advice. No guaranteed outcomes. No SSNs or full account numbers. FCRA citations for education only. If data is missing, make professional estimates.`;
-
 async function runJeciAnalysis(file: File, firstName: string, lastName: string): Promise<AuditReport> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY;
-  if (!apiKey) throw new Error("API key not configured. Contact support.");
-
-  const content = await new Promise<any>((resolve, reject) => {
+  const payload = await new Promise<Record<string, string>>((resolve, reject) => {
     const reader = new FileReader();
     if (file.type === 'application/pdf') {
       reader.onload = e => resolve({
-        type: "document",
-        source: { type: "base64", media_type: "application/pdf", data: (e.target?.result as string).split(',')[1] }
+        documentBase64: (e.target?.result as string).split(',')[1],
+        mediaType: "application/pdf",
+        fileName: file.name,
       });
       reader.onerror = reject;
       reader.readAsDataURL(file);
     } else {
-      reader.onload = e => resolve({ type: "text", text: e.target?.result as string });
+      reader.onload = e => resolve({ reportText: e.target?.result as string });
       reader.onerror = reject;
       reader.readAsText(file);
     }
   });
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system: JECI_SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: [
-          content,
-          { type: "text", text: `Client Name: ${firstName} ${lastName}\nReport Date: ${new Date().toLocaleDateString()}\n\nAnalyze this credit report and return the full JSON audit.` }
-        ]
-      }],
-    }),
+  return requestJeciAnalysis({
+    ...payload,
+    clientName: `${firstName} ${lastName}`,
+    reportDate: new Date().toLocaleDateString(),
   });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message ?? `API error ${response.status}`);
-  }
-
-  const data = await response.json();
-  const raw = data.content?.[0]?.text ?? "";
-  return JSON.parse(raw.replace(/```json|```/g, "").trim()) as AuditReport;
 }
 
 async function runJeciAnalysisText(text: string, firstName: string, lastName: string): Promise<AuditReport> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY;
-  if (!apiKey) throw new Error("API key not configured. Contact support.");
+  return requestJeciAnalysis({
+    reportText: text,
+    clientName: `${firstName} ${lastName}`,
+    reportDate: new Date().toLocaleDateString(),
+  });
+}
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+async function requestJeciAnalysis(payload: Record<string, string>): Promise<AuditReport> {
+  const response = await fetch("/api/analyze-credit", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      system: JECI_SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: `Client Name: ${firstName} ${lastName}\nReport Date: ${new Date().toLocaleDateString()}\n\n${text}`
-      }],
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
+  const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message ?? `API error ${response.status}`);
+    throw new Error((data as any)?.error ?? `Server error ${response.status}`);
   }
 
-  const data = await response.json();
-  const raw = data.content?.[0]?.text ?? "";
-  return JSON.parse(raw.replace(/```json|```/g, "").trim()) as AuditReport;
+  if (!(data as any).report) throw new Error("No report returned from analysis service.");
+  return (data as any).report as AuditReport;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────

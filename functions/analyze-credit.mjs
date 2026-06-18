@@ -2,7 +2,7 @@
  * functions/analyze-credit.mjs
  * Netlify serverless function — JECI AI credit report analysis
  *
- * Accepts: POST { reportText: string }
+ * Accepts: POST { reportText: string } or { documentBase64, mediaType, fileName }
  * Returns: { report: AuditReport } | { error: string }
  *
  * Uses a direct fetch to the Anthropic API — no SDK import — so there is
@@ -95,7 +95,42 @@ export const handler = async (event) => {
   }
 
   try {
-    const { reportText } = JSON.parse(event.body);
+    const {
+      reportText,
+      documentBase64,
+      mediaType = 'application/pdf',
+      fileName = 'credit-report.pdf',
+      clientName = 'Valued Client',
+      reportDate = new Date().toLocaleDateString(),
+    } = JSON.parse(event.body || '{}');
+
+    if (!reportText && !documentBase64) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Credit report text or PDF is required.' }),
+      };
+    }
+
+    const instruction = `Client Name: ${clientName}
+Report Date: ${reportDate}
+
+Analyze this credit report and return the full JSON audit.`;
+
+    const content = documentBase64
+      ? [
+          {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: mediaType,
+              data: documentBase64,
+            },
+            title: fileName,
+          },
+          { type: 'text', text: instruction },
+        ]
+      : `${instruction}\n\n${reportText}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -108,7 +143,7 @@ export const handler = async (event) => {
         model: 'claude-sonnet-4-5',
         max_tokens: 4000,
         system: JECI_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: reportText }],
+        messages: [{ role: 'user', content }],
       }),
     });
 
