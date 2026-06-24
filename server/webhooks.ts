@@ -21,6 +21,7 @@ type SequencePayload = {
   tempPassword?: string;
   portalUrl?: string;
   creditHeroUrl?: string;
+  creditHeroSignupUrl?: string;
   uploadUrl?: string;
   calendlyUrl?: string;
   closerEmail?: string;
@@ -50,7 +51,11 @@ function getRecipient(sequence: Sequence, payload: SequencePayload): string | un
 function buildEmail(sequence: Sequence, payload: SequencePayload) {
   const firstName = payload.firstName || payload.name || "there";
   const portalUrl = payload.portalUrl || process.env.FRONTEND_URL || "https://700creditclubexperts.com";
-  const creditHeroUrl = payload.creditHeroUrl || process.env.CREDIT_HERO_URL || "https://creditheroscore.com";
+  const creditHeroUrl =
+    payload.creditHeroSignupUrl ||
+    payload.creditHeroUrl ||
+    process.env.CREDIT_HERO_SIGNUP_URL ||
+    "https://creditheroscore.com";
   const uploadUrl = payload.uploadUrl || `${portalUrl.replace(/\/$/, "")}/portal`;
   const calendlyUrl = payload.calendlyUrl || process.env.CALENDLY_URL || "https://calendly.com/700creditclubexperts";
 
@@ -58,27 +63,27 @@ function buildEmail(sequence: Sequence, payload: SequencePayload) {
     case "welcome":
       return {
         subject: "Welcome to 700 Credit Club Experts",
-        html: `<p>Hi ${firstName}, welcome to 700 Credit Club Experts.</p><p>Your onboarding has started. You can access your portal here: <a href="${portalUrl}">${portalUrl}</a></p>`,
+        html: `<p>Hi ${firstName}, welcome to 700 Credit Club Experts.</p><p>Your onboarding is active. We will walk you through CreditHero Score, secure credit report upload, and your expert review call.</p><p>Your portal is here: <a href="${portalUrl}">${portalUrl}</a></p>`,
       };
     case "credit_hero_invite":
       return {
-        subject: "Pull your Credit Hero score",
-        html: `<p>Hi ${firstName}, please pull your Credit Hero score so we can establish your baseline.</p><p><a href="${creditHeroUrl}">Get your score</a></p>`,
+        subject: "Set up CreditHero Score",
+        html: `<p>Hi ${firstName}, your next step is CreditHero Score.</p><p>Please create your CreditHero Score account so we can confirm your baseline, track alerts, and keep your credit restoration file moving.</p><p><a href="${creditHeroUrl}">Set up CreditHero Score</a></p>`,
       };
     case "upload_reminder":
       return {
         subject: "Reminder: upload your credit documents",
-        html: `<p>Hi ${firstName}, this is a reminder to upload your credit documents so our team can keep your file moving.</p><p><a href="${uploadUrl}">Upload documents</a></p>`,
+        html: `<p>Hi ${firstName}, please upload your latest credit report documents in the portal.</p><p>If you have not set up CreditHero Score yet, complete that first so your monitoring baseline is ready for review.</p><p><a href="${uploadUrl}">Upload documents</a></p>`,
       };
     case "review_call_prompt":
       return {
         subject: "Schedule your credit review call",
-        html: `<p>Hi ${firstName}, your next step is to schedule a review call with our team.</p><p><a href="${calendlyUrl}">Book your call</a></p>`,
+        html: `<p>Hi ${firstName}, your Credit Office file is ready for the next review step.</p><p>Please schedule your call so we can review your CreditHero Score baseline, uploaded report details, and next actions.</p><p><a href="${calendlyUrl}">Book your call</a></p>`,
       };
     case "closer_alert":
       return {
         subject: `Closer alert: ${payload.leadName || payload.name || "new lead"}`,
-        html: `<p>A lead needs follow-up.</p><p>Name: ${payload.leadName || payload.name || "Not provided"}</p><p>Email: ${payload.leadEmail || payload.email || "Not provided"}</p><p>Phone: ${payload.leadPhone || "Not provided"}</p><p>${payload.message || ""}</p>`,
+        html: `<p>A 700 Credit Club lead needs follow-up.</p><p>Business flow: Welcome sent, CreditHero Score invite queued, upload reminder queued, review call prompt queued.</p><p>Name: ${payload.leadName || payload.name || "Not provided"}</p><p>Email: ${payload.leadEmail || payload.email || "Not provided"}</p><p>Phone: ${payload.leadPhone || "Not provided"}</p><p>${payload.message || ""}</p>`,
       };
   }
 }
