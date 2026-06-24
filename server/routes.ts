@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import webhookRouter from "./webhooks";
 import { createServer, type Server } from "http";
 import { db } from "./db";
 import { users, leads, refreshTokens, affiliateReferrals, commissions, auditLog } from "@shared/schema";
@@ -426,6 +427,8 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       return res.status(500).json({ message: "Failed to fetch leads" });
     }
   });
-
+  // ─── JECI Webhooks ────────────────────────────────────────────────────────
+  app.use("/api/webhooks", webhookRouter);
+  
   return httpServer;
 }
