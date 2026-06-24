@@ -1,13 +1,18 @@
 import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 import { SignJWT, jwtVerify } from "jose";
 import { randomBytes, pbkdf2Sync } from "crypto";
 
 const {
+  COMMS_WEBHOOK_SECRET,
+  RESEND_API_KEY,
   SENDGRID_API_KEY,
   JWT_SECRET = "700-credit-club-default-secret",
   ADMIN_EMAIL = "sales@700creditclubexperts.com",
   ADMIN_PASSWORD,
+  EMAIL_FROM,
   FROM_EMAIL = "sales@700creditclubexperts.com",
+  CLOSER_ALERT_EMAIL,
   FRONTEND_URL = "https://700creditclubexperts.com",
 } = process.env;
 
@@ -48,7 +53,7 @@ function json(statusCode, body) {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-comms-secret",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     },
     body: JSON.stringify(body),
@@ -61,7 +66,7 @@ export async function handler(event) {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-comms-secret",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       },
       body: "",
@@ -76,6 +81,61 @@ export async function handler(event) {
   const authHeader = event.headers?.authorization || event.headers?.Authorization || "";
 
   console.log(`${method} ${path}`);
+
+  if (path === "/webhooks/sequence-trigger" && method === "POST") {
+    const providedSecret = event.headers?.["x-comms-secret"] || event.headers?.["X-Comms-Secret"];
+    if (!COMMS_WEBHOOK_SECRET || !providedSecret || providedSecret !== COMMS_WEBHOOK_SECRET) {
+      return json(401, { error: "Unauthorized" });
+    }
+
+    const allowedSequences = ["welcome", "credit_hero_invite", "upload_reminder", "review_call_prompt", "closer_alert"];
+    const sequence = body.sequence;
+    if (!sequence || !allowedSequences.includes(sequence)) {
+      return json(400, { error: "Invalid sequence", allowedSequences });
+    }
+
+    const to = sequence === "closer_alert" ? CLOSER_ALERT_EMAIL : body.email;
+    if (!to) return json(400, { error: "Missing recipient" });
+    if (!EMAIL_FROM) return json(500, { error: "EMAIL_FROM is not configured" });
+
+    const firstName = body.firstName || body.name || "there";
+    const emailBySequence = {
+      welcome: {
+        subject: "Welcome to 700 Credit Club Experts",
+        html: `<p>Hi ${firstName}, welcome to 700 Credit Club Experts.</p><p>Your onboarding has started. You can access your portal here: <a href="${FRONTEND_URL}">${FRONTEND_URL}</a></p>`,
+      },
+      credit_hero_invite: {
+        subject: "Pull your Credit Hero score",
+        html: `<p>Hi ${firstName}, please pull your Credit Hero score so we can establish your baseline.</p>`,
+      },
+      upload_reminder: {
+        subject: "Reminder: upload your credit documents",
+        html: `<p>Hi ${firstName}, this is a reminder to upload your credit documents so our team can keep your file moving.</p>`,
+      },
+      review_call_prompt: {
+        subject: "Schedule your credit review call",
+        html: `<p>Hi ${firstName}, your next step is to schedule a review call with our team.</p>`,
+      },
+      closer_alert: {
+        subject: `Closer alert: ${body.leadName || body.name || "new lead"}`,
+        html: `<p>A lead needs follow-up.</p><p>Name: ${body.leadName || body.name || "Not provided"}</p><p>Email: ${body.leadEmail || body.email || "Not provided"}</p><p>Phone: ${body.leadPhone || "Not provided"}</p><p>${body.message || ""}</p>`,
+      },
+    };
+
+    if (!RESEND_API_KEY) {
+      return json(200, { ok: true, mocked: true, sequence, to });
+    }
+
+    const resend = new Resend(RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to,
+      subject: emailBySequence[sequence].subject,
+      html: emailBySequence[sequence].html,
+    });
+
+    return json(200, { ok: true, mocked: false, sequence, to, id: result.data?.id });
+  }
 
   // ── Health ────────────────────────────────────────────────────────────────
   if (path === "/health" && method === "GET") {
